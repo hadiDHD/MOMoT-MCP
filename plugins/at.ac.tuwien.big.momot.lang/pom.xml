@@ -28,6 +28,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 					</execution>
 				</executions>
 				<configuration>
+					<skip>${xtend.skip}</skip>
 					<outputDirectory>xtend-gen</outputDirectory>
 				</configuration>
 			</plugin>

@@ -14,10 +14,12 @@
 	<modules>
 		<module>plugins/at.ac.tuwien.big.moea</module>
 		<module>plugins/at.ac.tuwien.big.momot.core</module>
+		<module>plugins/at.ac.tuwien.big.momot.runner</module>
 		<module>plugins/at.ac.tuwien.big.momot.examples.wizards</module>
 		<module>plugins/at.ac.tuwien.big.momot.lang</module>
 		<module>plugins/at.ac.tuwien.big.momot.lang.ui</module>
 		<module>plugins/at.ac.tuwien.big.momot.ui.popup</module>
+		<module>headless</module>
 		<module>features</module>
 		<module>releng</module>
 		<!--
@@ -29,8 +31,8 @@
 	<properties>
 		<!-- plugins versions -->
 		<!-- use 'mvn versions:display-plugin-updates' to check for the latest -->
-		<tycho-version>0.25.0</tycho-version>
-		<tychoExtrasVersion>0.25.0</tychoExtrasVersion>
+		<tycho-version>4.0.10</tycho-version>
+		<tychoExtrasVersion>4.0.10</tychoExtrasVersion>
 		<maven-checkstyle-version>2.12.1</maven-checkstyle-version>
 		<maven-findbugs-version>3.0.0</maven-findbugs-version>
 		<maven-pmd-version>3.1</maven-pmd-version>
@@ -40,12 +42,13 @@
 		<!-- Eclipse properties -->
 
 		<!-- default environment overridden by profile, tycho preempts profile -->
-		<java.source>1.8</java.source>
-		<java.target>1.8</java.target>
-		<eclipse.targetrelease>neon</eclipse.targetrelease>
+		<java.source>21</java.source>
+		<java.target>21</java.target>
+		<eclipse.targetrelease>2026-03</eclipse.targetrelease>
 		<target.version>${project.version}</target.version>
-		<xtend.version>2.10.0</xtend.version>
-		<maven-surefire-version>2.17</maven-surefire-version>
+		<xtend.version>2.37.0</xtend.version>
+		<xtend.skip>false</xtend.skip>
+		<maven-surefire-version>3.2.5</maven-surefire-version>
 
 		<!-- Platform properties -->
 		<env.ui.test>-Xms512m -Xmx2048m</env.ui.test>
@@ -158,11 +161,6 @@
 					<version>${tycho-version}</version>
 				</plugin>
 				<plugin>
-					<groupId>org.eclipse.tycho.extras</groupId>
-					<artifactId>tycho-source-feature-plugin</artifactId>
-					<version>${tychoExtrasVersion}</version>
-				</plugin>
-				<plugin>
 					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>tycho-p2-plugin</artifactId>
 					<version>${tycho-version}</version>
@@ -191,16 +189,6 @@
 					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>target-platform-configuration</artifactId>
 					<version>${tycho-version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.eclipse.tycho.extras</groupId>
-					<artifactId>tycho-pack200a-plugin</artifactId>
-					<version>${tychoExtrasVersion}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.eclipse.tycho.extras</groupId>
-					<artifactId>tycho-pack200b-plugin</artifactId>
-					<version>${tychoExtrasVersion}</version>
 				</plugin>
 				<plugin>
 					<groupId>org.eclipse.cbi.maven.plugins</groupId>
@@ -247,24 +235,6 @@
 						<goals>
 							<goal>plugin-source</goal>
 						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.eclipse.tycho.extras</groupId>
-				<artifactId>tycho-source-feature-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>source-feature</id>
-						<phase>package</phase>
-						<goals>
-							<goal>source-feature</goal>
-						</goals>
-						<configuration>
-							<excludes>
-								<plugin id="at.ac.tuwien.big.momot.branding" />
-							</excludes>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -334,6 +304,7 @@
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>target-platform-configuration</artifactId>
 				<configuration>
+					<executionEnvironment>JavaSE-21</executionEnvironment>
 					<includePackedArtifacts>true</includePackedArtifacts>
 					<targetDefinitionIncludeSource>honor</targetDefinitionIncludeSource>
 					<environments>

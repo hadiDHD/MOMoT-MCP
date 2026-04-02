@@ -43,6 +43,7 @@
       <unit id="com.google.guava" version="0.0.0"/>
       <unit id="org.eclipse.orbit.maven.org.apache.batik.feature.group" version="0.0.0"/>
       <unit id="org.apache.commons.commons-io" version="0.0.0"/>
+      <unit id="org.apache.commons.cli" version="0.0.0"/>
       <unit id="org.apache.commons.commons-logging" version="0.0.0"/>
       <unit id="org.apache.commons.lang3" version="0.0.0"/>
       <unit id="org.junit" version="0.0.0"/>

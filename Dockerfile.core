@@ -1,0 +1,12 @@
+FROM maven:3.9-eclipse-temurin AS build
+WORKDIR /src
+COPY . .
+RUN mvn -Declipse.release=latest -pl plugins/at.ac.tuwien.big.moea,plugins/at.ac.tuwien.big.momot.core,plugins/at.ac.tuwien.big.momot.lang,plugins/at.ac.tuwien.big.momot.runner -am -DskipTests=true -Dxtend.skip=true package
+RUN mkdir -p /app/repository/plugins && find /src -path '*/target/*.jar' ! -name 'original-*' ! -name '*-sources.jar' ! -name '*-javadoc.jar' -exec cp {} /app/repository/plugins/ \;
+
+FROM eclipse-temurin:21-jre
+WORKDIR /work
+EXPOSE 8080
+VOLUME ["/work", "/out"]
+COPY --from=build /app/repository /app/repository
+ENTRYPOINT ["java", "-cp", "/app/repository/plugins/*", "at.ac.tuwien.big.momot.runner.RestServerMain"]

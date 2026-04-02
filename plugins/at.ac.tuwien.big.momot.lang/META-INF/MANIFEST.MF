@@ -28,7 +28,7 @@ Require-Bundle: org.eclipse.equinox.common,
  at.ac.tuwien.big.momot.core
 Import-Package: org.apache.log4j,
  org.eclipse.xtext.xbase.compiler
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-21
 Export-Package: at.ac.tuwien.big.momot.lang,
  at.ac.tuwien.big.momot.lang.formatting,
  at.ac.tuwien.big.momot.lang.jvmmodel,

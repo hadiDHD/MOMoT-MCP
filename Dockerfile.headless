@@ -1,0 +1,11 @@
+FROM maven:3.9-eclipse-temurin AS build
+WORKDIR /src
+COPY . .
+RUN mvn -pl headless/at.ac.tuwien.big.momot.cli -am -DskipTests=true package
+RUN cp headless/at.ac.tuwien.big.momot.cli/target/*-standalone.jar /tmp/momot-cli-standalone.jar
+
+FROM eclipse-temurin:21-jre
+WORKDIR /work
+VOLUME ["/work", "/out"]
+COPY --from=build /tmp/momot-cli-standalone.jar /app/momot-cli-standalone.jar
+ENTRYPOINT ["java", "-jar", "/app/momot-cli-standalone.jar"]

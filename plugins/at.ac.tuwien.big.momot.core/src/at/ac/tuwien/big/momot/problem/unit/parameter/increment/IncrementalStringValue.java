@@ -15,7 +15,7 @@ package at.ac.tuwien.big.momot.problem.unit.parameter.increment;
 import at.ac.tuwien.big.moea.util.TextUtil;
 import at.ac.tuwien.big.momot.problem.unit.parameter.IParameterValue;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class IncrementalStringValue implements IParameterValue<String> {
 

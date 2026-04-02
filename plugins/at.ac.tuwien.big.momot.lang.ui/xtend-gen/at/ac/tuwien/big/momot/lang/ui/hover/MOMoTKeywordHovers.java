@@ -1,8 +1,8 @@
 package at.ac.tuwien.big.momot.lang.ui.hover;
 
 import at.ac.tuwien.big.momot.lang.services.MOMoTGrammarAccess;
-import com.google.common.base.Objects;
 import com.google.inject.Inject;
+import java.util.Objects;
 import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.Keyword;
 
@@ -10,15 +10,14 @@ import org.eclipse.xtext.Keyword;
 public class MOMoTKeywordHovers {
   @Inject
   private MOMoTGrammarAccess ga;
-  
+
   public String hoverText(final Keyword k) {
     String _xblockexpression = null;
     {
       String _switchResult = null;
       boolean _matched = false;
-      MOMoTGrammarAccess.IndicatorArrayElements _indicatorArrayAccess = this.ga.getIndicatorArrayAccess();
-      Keyword _hypervolumeHypervolumeKeyword_2_0_0 = _indicatorArrayAccess.getHypervolumeHypervolumeKeyword_2_0_0();
-      if (Objects.equal(k, _hypervolumeHypervolumeKeyword_2_0_0)) {
+      Keyword _hypervolumeHypervolumeKeyword_2_0_0 = this.ga.getIndicatorArrayAccess().getHypervolumeHypervolumeKeyword_2_0_0();
+      if (Objects.equals(k, _hypervolumeHypervolumeKeyword_2_0_0)) {
         _matched=true;
         StringConcatenation _builder = new StringConcatenation();
         _builder.append("<p>Hypervolume is a common indicator used when comparing different search-based algorithm ");
@@ -34,9 +33,8 @@ public class MOMoTKeywordHovers {
         _switchResult = _builder.toString();
       }
       if (!_matched) {
-        MOMoTGrammarAccess.IndicatorArrayElements _indicatorArrayAccess_1 = this.ga.getIndicatorArrayAccess();
-        Keyword _invertedGenerationalDistanceInvertedGenerationalDistanceKeyword_2_2_0 = _indicatorArrayAccess_1.getInvertedGenerationalDistanceInvertedGenerationalDistanceKeyword_2_2_0();
-        if (Objects.equal(k, _invertedGenerationalDistanceInvertedGenerationalDistanceKeyword_2_2_0)) {
+        Keyword _invertedGenerationalDistanceInvertedGenerationalDistanceKeyword_2_2_0 = this.ga.getIndicatorArrayAccess().getInvertedGenerationalDistanceInvertedGenerationalDistanceKeyword_2_2_0();
+        if (Objects.equals(k, _invertedGenerationalDistanceInvertedGenerationalDistanceKeyword_2_2_0)) {
           _matched=true;
           StringConcatenation _builder_1 = new StringConcatenation();
           _builder_1.append("<p>Inverted Generational Distance is a convergence measure that corresponds to the average Euclidean distance ");

@@ -99,7 +99,7 @@ public abstract class AbstractMOMoTRuntimeModule extends org.eclipse.xtext.xbase
 	}
 
 	// contributed by org.eclipse.xtext.generator.validation.ValidatorFragment
-	@org.eclipse.xtext.service.SingletonBinding(eager=true)	public Class<? extends at.ac.tuwien.big.momot.lang.validation.MOMoTValidator> bindMOMoTValidator() {
+	public Class<? extends at.ac.tuwien.big.momot.lang.validation.MOMoTValidator> bindMOMoTValidator() {
 		return at.ac.tuwien.big.momot.lang.validation.MOMoTValidator.class;
 	}
 

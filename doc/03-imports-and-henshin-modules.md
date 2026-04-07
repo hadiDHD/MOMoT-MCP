@@ -1,10 +1,52 @@
 # Imports and Henshin Modules
 
-Import the runtime helpers needed by the optimization script and list Henshin modules in a flat array.
+Imports and module declarations connect script logic to runtime classes and transformation assets.
+
+## Import guidance
+
+- Import only types actually used in objectives or helper expressions.
+- Prefer stable API types from MOMoT runtime packages.
+- Keep imports explicit to simplify generated-code debugging.
+
+Example:
 
 ```text
 import at.ac.tuwien.big.momot.search.fitness.dimension.TransformationLengthDimension
+```
+
+## Henshin module declaration
+
+```text
 transformations = {
-	modules = [ "input/transformations.henshin" ]
+	modules = [ "transformations/rules.henshin" ]
 }
 ```
+
+For multiple modules:
+
+```text
+transformations = {
+	modules = [
+		"transformations/base.henshin",
+		"transformations/extensions.henshin"
+	]
+}
+```
+
+## Ordering and consistency
+
+- Keep module list order deterministic.
+- Avoid duplicate module entries.
+- Ensure referenced transformations match metamodel expectations.
+
+## Common failure patterns
+
+- Module file exists but references unavailable metamodel URIs.
+- Import points to class not present in runtime classpath.
+- Script compiles but runtime fails due to transformation preconditions not met.
+
+## Validation checklist
+
+- Every import resolves in the headless runtime classpath.
+- Every module path is present in zip and readable.
+- Module rules are compatible with the uploaded model instance.

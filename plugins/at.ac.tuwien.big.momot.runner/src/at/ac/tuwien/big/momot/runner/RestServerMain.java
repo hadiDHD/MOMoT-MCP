@@ -5,6 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -80,13 +82,19 @@ public final class RestServerMain {
          }
 
          final Map<String, String> query = parseQuery(exchange.getRequestURI());
-         final String mainClass = query.get("mainClass");
-         if(mainClass == null || mainClass.trim().isEmpty()) {
-            sendText(exchange, 400, "Missing required query parameter: mainClass");
+         String mainClass = query.get("mainClass");
+         String jarName = firstNonBlank(query.get("jar"), query.get("program"), "program.jar");
+         String scriptName = query.get("script");
+         if(scriptName == null && jarName != null && jarName.toLowerCase().endsWith(".momot")) {
+            scriptName = jarName;
+            jarName = null;
+         }
+
+         if((mainClass == null || mainClass.trim().isEmpty()) && (scriptName == null || scriptName.trim().isEmpty())) {
+            sendText(exchange, 400, "Missing required query parameter: mainClass (or provide script=<file.momot>)");
             return;
          }
 
-         final String jarName = firstNonBlank(query.get("jar"), query.get("script"), "program.jar");
          final Path jobDir = Files.createTempDirectory("momot-rest-job-");
          final Path workDir = jobDir.resolve("work");
          final Path outDir = jobDir.resolve("out");
@@ -104,14 +112,44 @@ public final class RestServerMain {
          String errorMessage = null;
          try {
             unzip(exchange.getRequestBody(), workDir);
-            final Path jarPath = resolveWithinWorkDir(workDir, jarName);
-            if(!Files.exists(jarPath)) {
-               throw new IOException("Jar not found in uploaded archive: " + jarName);
+            final Path jarPath;
+            if(scriptName != null && !scriptName.trim().isEmpty()) {
+               final Path scriptPath = resolveWithinWorkDir(workDir, scriptName);
+               if(!Files.exists(scriptPath)) {
+                  throw new IOException("Script not found in uploaded archive: " + scriptName);
+               }
+               final MomotScriptCompiler.CompilationResult compilation = MomotScriptCompiler
+                     .compile(scriptPath, runnerDir.resolve("compile"));
+               Files.writeString(runnerDir.resolve("compile.log"), compilation.compileLog(), StandardCharsets.UTF_8);
+               jarPath = compilation.jarPath();
+               if(mainClass == null || mainClass.trim().isEmpty()) {
+                  mainClass = compilation.mainClass();
+               }
+            } else {
+               jarPath = resolveWithinWorkDir(workDir, jarName);
+               if(!Files.exists(jarPath)) {
+                  throw new IOException("Jar not found in uploaded archive: " + jarName);
+               }
             }
+
+            if(mainClass == null || mainClass.trim().isEmpty()) {
+               throw new IOException("Unable to determine main class for execution.");
+            }
+
+            Files.writeString(requestFile,
+                  "{\"mainClass\":\"" + mainClass + "\",\"jar\":\""
+                        + (jarName == null ? "<compiled-from-script>" : jarName)
+                        + "\",\"script\":\"" + (scriptName == null ? "" : scriptName) + "\"}",
+                  StandardCharsets.UTF_8);
             exitCode = runProgram(jobDir, workDir, outDir, jarPath, mainClass, logFile, timeoutMs);
          } catch(final Exception exception) {
             errorMessage = exception.getMessage();
-            Files.writeString(logFile, (errorMessage == null ? exception.toString() : errorMessage) + System.lineSeparator(), StandardCharsets.UTF_8);
+            final StringWriter stackTraceWriter = new StringWriter();
+            exception.printStackTrace(new PrintWriter(stackTraceWriter));
+            Files.writeString(logFile,
+               (errorMessage == null ? exception.toString() : errorMessage) + System.lineSeparator()
+                  + stackTraceWriter,
+               StandardCharsets.UTF_8);
             Files.writeString(exitCodeFile, Integer.toString(exitCode), StandardCharsets.UTF_8);
          }
 
@@ -143,7 +181,7 @@ public final class RestServerMain {
          command.add(outDir.toString());
 
          final ProcessBuilder processBuilder = new ProcessBuilder(command);
-         processBuilder.directory(jobDir.toFile());
+         processBuilder.directory(workDir.toFile());
          processBuilder.redirectErrorStream(true);
          final Process process = processBuilder.start();
 
@@ -186,7 +224,8 @@ public final class RestServerMain {
       try(ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
          ZipEntry entry;
          while((entry = zipInputStream.getNextEntry()) != null) {
-            final Path resolved = destination.resolve(entry.getName()).normalize();
+            final String normalizedEntryName = entry.getName().replace('\\', '/');
+            final Path resolved = destination.resolve(normalizedEntryName).normalize();
             if(!resolved.startsWith(destination)) {
                throw new IOException("Zip entry escapes target directory: " + entry.getName());
             }

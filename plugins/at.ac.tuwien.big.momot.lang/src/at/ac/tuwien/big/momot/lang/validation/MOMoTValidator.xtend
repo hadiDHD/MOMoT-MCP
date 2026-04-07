@@ -52,7 +52,13 @@ import at.ac.tuwien.big.momot.lang.preference.MOMoTPreferences
 class MOMoTValidator extends AbstractMOMoTValidator {
    
    
-   static final val wsRoot = ResourcesPlugin.workspace.root
+   static def wsRoot() {
+      try {
+         return ResourcesPlugin.workspace?.root
+      } catch(Exception e) {
+         return null
+      }
+   }
    
    @Inject EarlyExitInterpreter interpreter
    

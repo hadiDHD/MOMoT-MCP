@@ -10,7 +10,7 @@ RUN cp /src/plugins/at.ac.tuwien.big.moea/lib/*.jar /app/repository/plugins/
 RUN cp /src/plugins/at.ac.tuwien.big.momot.core/target/at.ac.tuwien.big.momot.core-*.jar /app/repository/plugins/
 RUN cp /src/plugins/at.ac.tuwien.big.momot.lang/target/at.ac.tuwien.big.momot.lang-*.jar /app/repository/plugins/
 RUN set -eux; \
-	for bundle in org.eclipse.ocl org.eclipse.ocl.common org.eclipse.ocl.ecore; do \
+	for bundle in org.eclipse.ocl org.eclipse.ocl.common org.eclipse.ocl.ecore lpg.runtime.java; do \
 		jar_path="$(find /root/.m2/repository/p2/osgi/bundle/$bundle -name '*.jar' | sort -V | tail -n 1)"; \
 		if [ -z "$jar_path" ]; then \
 			echo "Missing required OCL bundle jar for $bundle" >&2; \
@@ -23,6 +23,14 @@ RUN set -eux; \
 	base_url="https://download.eclipse.org/modeling/emft/henshin/updates/release/plugins"; \
 	curl -fsSL "$base_url/org.eclipse.emf.henshin.model_1.8.0.202302121604.jar" -o "/app/repository/plugins/org.eclipse.emf.henshin.model_1.8.0.202302121604.jar"; \
 	curl -fsSL "$base_url/org.eclipse.emf.henshin.interpreter_1.8.0.202302121604.jar" -o "/app/repository/plugins/org.eclipse.emf.henshin.interpreter_1.8.0.202302121604.jar"
+RUN set -eux; \
+	base_url="https://repo1.maven.org/maven2"; \
+	curl -fsSL "$base_url/org/openjdk/nashorn/nashorn-core/15.4/nashorn-core-15.4.jar" -o "/app/repository/plugins/nashorn-core-15.4.jar"; \
+	curl -fsSL "$base_url/org/ow2/asm/asm/7.3.1/asm-7.3.1.jar" -o "/app/repository/plugins/asm-7.3.1.jar"; \
+	curl -fsSL "$base_url/org/ow2/asm/asm-commons/7.3.1/asm-commons-7.3.1.jar" -o "/app/repository/plugins/asm-commons-7.3.1.jar"; \
+	curl -fsSL "$base_url/org/ow2/asm/asm-tree/7.3.1/asm-tree-7.3.1.jar" -o "/app/repository/plugins/asm-tree-7.3.1.jar"; \
+	curl -fsSL "$base_url/org/ow2/asm/asm-util/7.3.1/asm-util-7.3.1.jar" -o "/app/repository/plugins/asm-util-7.3.1.jar"; \
+	curl -fsSL "$base_url/org/ow2/asm/asm-analysis/7.3.1/asm-analysis-7.3.1.jar" -o "/app/repository/plugins/asm-analysis-7.3.1.jar"
 RUN set -eux; \
 	for jar_file in /app/repository/plugins/*.jar; do \
 		work_dir="$(mktemp -d)"; \

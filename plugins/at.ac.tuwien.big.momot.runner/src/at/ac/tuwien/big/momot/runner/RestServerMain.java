@@ -168,6 +168,8 @@ public final class RestServerMain {
          final String javaExecutable = Paths.get(System.getProperty("java.home"), "bin", isWindows() ? "java.exe" : "java").toString();
          final List<String> command = new ArrayList<>();
          command.add(javaExecutable);
+         command.add("--add-opens");
+         command.add("java.base/java.util=ALL-UNNAMED");
          command.add("-cp");
          command.add(System.getProperty("java.class.path"));
          command.add("at.ac.tuwien.big.momot.runner.RunnerMain");

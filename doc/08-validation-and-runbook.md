@@ -13,12 +13,19 @@ This runbook validates the full zip-in/zip-out REST execution path and helps iso
 
 ```text
 job.zip
-|- script.momot
-|- model/
-|  `- model.xmi
-`- transformations/
-	`- rules.henshin
+|- src/
+|  `- .../YourSearch.momot
+`- model/
+	|- input/.../*.xmi
+	|- *.ecore
+	`- *.henshin
 ```
+
+Notes:
+
+1. Keep paths in the archive Linux-friendly (`/` separators).
+2. Upload the zip as a raw binary body (`application/zip`), not multipart form-data.
+3. The `script` query parameter must match the extracted relative path exactly.
 
 ## Smoke-test flow
 
@@ -43,7 +50,7 @@ Invoke-WebRequest http://localhost:8080/health | Select-Object -ExpandProperty C
 4. Submit run request (binary zip body):
 
 ```powershell
-Invoke-WebRequest -Method Post -Uri "http://localhost:8080/run?script=script.momot" -InFile job.zip -ContentType "application/zip" -OutFile response.zip
+curl.exe -sS -X POST "http://localhost:8080/run?script=src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot" -H "Content-Type: application/zip" --data-binary "@headless-example/job-minimal.zip" --output headless-example/response-minimal.zip
 ```
 
 5. Inspect response contents:
@@ -52,6 +59,52 @@ Invoke-WebRequest -Method Post -Uri "http://localhost:8080/run?script=script.mom
 - `runner/exit_code.txt`
 - `runner/request.json`
 - expected compile and `out/` artifacts
+
+## Reproducible stack-minimal fixture
+
+Use this when validating the current repository's known-good REST path.
+
+1. Build deterministic payload workspace:
+
+```powershell
+$root='headless-example/job-minimal'
+if(Test-Path $root){ Remove-Item -Recurse -Force $root }
+New-Item -ItemType Directory -Force -Path "$root/src/at/ac/tuwien/big/momot/examples/stack" | Out-Null
+New-Item -ItemType Directory -Force -Path "$root/model/input/model" | Out-Null
+Copy-Item "stack-example-minimal/src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot" "$root/src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot"
+Copy-Item "stack-example-minimal/model/stack.henshin" "$root/model/stack.henshin"
+Copy-Item "stack-example-minimal/model/stack.ecore" "$root/model/stack.ecore"
+Copy-Item "stack-example-minimal/model/input/model/model_five_stacks.xmi" "$root/model/input/model/model_five_stacks.xmi"
+```
+
+2. Build zip with stable entry names:
+
+```powershell
+Push-Location headless-example/job-minimal
+if(Test-Path ../job-minimal.zip){ Remove-Item -Force ../job-minimal.zip }
+jar --create --file ../job-minimal.zip model/stack.ecore model/stack.henshin model/input/model/model_five_stacks.xmi src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot
+Pop-Location
+```
+
+3. Run container and verify health:
+
+```powershell
+docker build -t momot-rest-test -f Dockerfile .
+docker run --rm -p 8080:8080 momot-rest-test
+Invoke-WebRequest -UseBasicParsing http://localhost:8080/health | Select-Object -ExpandProperty Content
+```
+
+4. Execute and verify success:
+
+```powershell
+curl.exe -sS -X POST "http://localhost:8080/run?script=src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot" -H "Content-Type: application/zip" --data-binary "@headless-example/job-minimal.zip" --output headless-example/response-minimal.zip
+```
+
+Expected:
+
+1. `runner/exit_code.txt` is `0`.
+2. `runner/request.json` includes `mainClass`, `jar`, and `script`.
+3. `runner/runner.log` contains Search, Analysis, and Results sections.
 
 ## Triage decision tree
 
@@ -66,6 +119,10 @@ Invoke-WebRequest -Method Post -Uri "http://localhost:8080/run?script=script.mom
 - Package not found (`EPackage` URI errors): model/metamodel registration mismatch.
 - Empty model root (`IndexOutOfBounds` on contents): invalid model payload.
 - Generated Java compile errors: script expression incompatibility.
+- `Script not found in uploaded archive`: wrong `script=` path, wrong zip entry names, or multipart upload.
+- `InaccessibleObjectException` (`java.util`): Java 21 module access; pass `--add-opens java.base/java.util=ALL-UNNAMED` when launching runner JVM.
+- `ClassNotFoundException: lpg.runtime.RuleAction`: missing `lpg.runtime.java` bundle in runtime image.
+- `defaultEngine is null` / `cannot find JavaScript engine`: missing Nashorn runtime jars on Java 21.
 
 ## CI-friendly assertions
 

@@ -11,6 +11,15 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 
 public final class RunnerMain {
    private RunnerMain() {
@@ -64,6 +73,7 @@ public final class RunnerMain {
          final ClassLoader previousLoader = currentThread.getContextClassLoader();
          currentThread.setContextClassLoader(classLoader);
          try {
+            registerEcorePackages(workPath);
             final Class<?> targetClass = Class.forName(mainClass, true, classLoader);
             final Method mainMethod = targetClass.getMethod("main", String[].class);
             final String[] targetArgs = new String[0];
@@ -97,6 +107,35 @@ public final class RunnerMain {
          options.put(key, args[++index]);
       }
       return options;
+   }
+
+   private static void registerEcorePackages(final Path workPath) throws Exception {
+      final ResourceSet resourceSet = new ResourceSetImpl();
+      resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("ecore", new EcoreResourceFactoryImpl());
+      try(Stream<Path> stream = Files.walk(workPath)) {
+         final List<Path> ecoreFiles = stream.filter(Files::isRegularFile)
+               .filter(path -> path.getFileName().toString().toLowerCase().endsWith(".ecore"))
+               .toList();
+         for(final Path ecoreFile : ecoreFiles) {
+            final URI ecoreUri = URI.createFileURI(ecoreFile.toAbsolutePath().normalize().toString());
+            final Resource resource = resourceSet.getResource(ecoreUri, true);
+            for(final EObject root : resource.getContents()) {
+               registerPackageTree(root);
+            }
+         }
+      }
+   }
+
+   private static void registerPackageTree(final EObject object) {
+      if(object instanceof EPackage) {
+         final EPackage ePackage = (EPackage) object;
+         if(!isBlank(ePackage.getNsURI())) {
+            EPackage.Registry.INSTANCE.put(ePackage.getNsURI(), ePackage);
+         }
+      }
+      for(final EObject child : object.eContents()) {
+         registerPackageTree(child);
+      }
    }
 
    private static void restoreProperty(final String key, final String value) {

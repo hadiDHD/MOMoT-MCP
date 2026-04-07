@@ -150,10 +150,20 @@ final class MomotScriptCompiler {
       for(final Path javaSource : javaSources) {
          final String className = stripExtension(javaSource.getFileName().toString());
          final String content = Files.readString(javaSource, StandardCharsets.UTF_8);
+         String normalizedContent = content;
          final String brokenMainLine = "search = new ();";
-         if(content.contains(brokenMainLine)) {
+         if(normalizedContent.contains(brokenMainLine)) {
             final String fixedMainLine = className + " search = new " + className + "();";
-            Files.writeString(javaSource, content.replace(brokenMainLine, fixedMainLine), StandardCharsets.UTF_8);
+            normalizedContent = normalizedContent.replace(brokenMainLine, fixedMainLine);
+         }
+
+         // Xtext generation may emit standalone eINSTANCE references, which are not valid Java statements.
+         if(normalizedContent.contains("._eINSTANCE;")) {
+            normalizedContent = normalizedContent.replace("._eINSTANCE;", "._eINSTANCE.getClass();");
+         }
+
+         if(!normalizedContent.equals(content)) {
+            Files.writeString(javaSource, normalizedContent, StandardCharsets.UTF_8);
          }
       }
    }

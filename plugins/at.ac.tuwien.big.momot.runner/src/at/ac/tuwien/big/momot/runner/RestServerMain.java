@@ -46,6 +46,9 @@ public final class RestServerMain {
       final HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
       final ExecutorService executor = Executors.newCachedThreadPool();
       server.setExecutor(executor);
+      server.createContext("/", new DocsRedirectHandler());
+      server.createContext("/docs", new DocsHandler());
+      server.createContext("/openapi.json", new OpenApiHandler());
       server.createContext("/health", new HealthHandler());
       server.createContext("/run", new RunHandler(timeoutMs));
       server.start();
@@ -54,6 +57,46 @@ public final class RestServerMain {
          executor.shutdownNow();
       }));
       System.out.println("MOMoT REST runner listening on port " + port);
+   }
+
+   private static final class DocsRedirectHandler implements HttpHandler {
+      @Override
+      public void handle(final HttpExchange exchange) throws IOException {
+         if(!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+            sendText(exchange, 405, "Method Not Allowed");
+            return;
+         }
+         final String path = exchange.getRequestURI().getPath();
+         if(path == null || !"/".equals(path)) {
+            sendText(exchange, 404, "Not Found");
+            return;
+         }
+         exchange.getResponseHeaders().add("Location", "/docs");
+         exchange.sendResponseHeaders(302, -1);
+         exchange.close();
+      }
+   }
+
+   private static final class DocsHandler implements HttpHandler {
+      @Override
+      public void handle(final HttpExchange exchange) throws IOException {
+         if(!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+            sendText(exchange, 405, "Method Not Allowed");
+            return;
+         }
+         sendBytes(exchange, 200, swaggerUiHtml().getBytes(StandardCharsets.UTF_8), "text/html; charset=utf-8");
+      }
+   }
+
+   private static final class OpenApiHandler implements HttpHandler {
+      @Override
+      public void handle(final HttpExchange exchange) throws IOException {
+         if(!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+            sendText(exchange, 405, "Method Not Allowed");
+            return;
+         }
+         sendJson(exchange, 200, openApiJson());
+      }
    }
 
    private static final class HealthHandler implements HttpHandler {
@@ -366,4 +409,128 @@ public final class RestServerMain {
    private static boolean isWindows() {
       return System.getProperty("os.name", "").toLowerCase().contains("win");
    }
+
+    private static String swaggerUiHtml() {
+         return """
+                  <!doctype html>
+                  <html lang="en">
+                  <head>
+                     <meta charset="utf-8"/>
+                     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                     <title>MOMoT REST API Docs</title>
+                     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"/>
+                     <style>
+                        body { margin: 0; background: #fafafa; }
+                        #swagger-ui { max-width: 1200px; margin: 0 auto; }
+                     </style>
+                  </head>
+                  <body>
+                     <div id="swagger-ui"></div>
+                     <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+                     <script>
+                        window.ui = SwaggerUIBundle({
+                           url: '/openapi.json',
+                           dom_id: '#swagger-ui',
+                           deepLinking: true,
+                           displayRequestDuration: true,
+                           presets: [SwaggerUIBundle.presets.apis],
+                           layout: 'BaseLayout'
+                        });
+                     </script>
+                  </body>
+                  </html>
+                  """;
+    }
+
+    private static String openApiJson() {
+         return """
+                  {
+                     "openapi": "3.0.3",
+                     "info": {
+                        "title": "MOMoT Headless REST Runner",
+                        "version": "1.0.0",
+                        "description": "Zip-in/zip-out API for running MOMoT jobs in Docker."
+                     },
+                     "paths": {
+                        "/health": {
+                           "get": {
+                              "summary": "Health check",
+                              "responses": {
+                                 "200": {
+                                    "description": "Service is ready",
+                                    "content": {
+                                       "application/json": {
+                                          "schema": {
+                                             "type": "object",
+                                             "properties": {
+                                                "status": { "type": "string", "example": "ok" }
+                                             },
+                                             "required": ["status"]
+                                          }
+                                       }
+                                    }
+                                 }
+                              }
+                           }
+                        },
+                        "/run": {
+                           "post": {
+                              "summary": "Execute a MOMoT run",
+                              "description": "Upload a zip as raw binary body (application/zip). Use either script=<relative/path.momot> or mainClass=<fqcn> query parameter.",
+                              "parameters": [
+                                 {
+                                    "name": "script",
+                                    "in": "query",
+                                    "required": false,
+                                    "schema": { "type": "string" },
+                                    "description": "Relative path to .momot file inside uploaded zip."
+                                 },
+                                 {
+                                    "name": "mainClass",
+                                    "in": "query",
+                                    "required": false,
+                                    "schema": { "type": "string" },
+                                    "description": "Java main class to run (if not compiling from script)."
+                                 },
+                                 {
+                                    "name": "jar",
+                                    "in": "query",
+                                    "required": false,
+                                    "schema": { "type": "string", "default": "program.jar" },
+                                    "description": "Relative jar path inside uploaded zip when using mainClass mode."
+                                 }
+                              ],
+                              "requestBody": {
+                                 "required": true,
+                                 "content": {
+                                    "application/zip": {
+                                       "schema": {
+                                          "type": "string",
+                                          "format": "binary"
+                                       }
+                                    }
+                                 }
+                              },
+                              "responses": {
+                                 "200": {
+                                    "description": "Run result bundle",
+                                    "content": {
+                                       "application/zip": {
+                                          "schema": {
+                                             "type": "string",
+                                             "format": "binary"
+                                          }
+                                       }
+                                    }
+                                 },
+                                 "400": {
+                                    "description": "Invalid request"
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }
+                  """;
+    }
 }

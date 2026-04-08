@@ -47,6 +47,13 @@ docker run --rm -p 8080:8080 momot-rest-test
 Invoke-WebRequest http://localhost:8080/health | Select-Object -ExpandProperty Content
 ```
 
+Swagger/OpenAPI docs:
+
+```text
+http://localhost:8080/docs
+http://localhost:8080/openapi.json
+```
+
 4. Submit run request (binary zip body):
 
 ```powershell
@@ -130,3 +137,26 @@ Expected:
 2. Response zip is returned for `/run`.
 3. `runner/exit_code.txt` equals `0` for known-good fixtures.
 4. `out/` contains expected result artifacts.
+
+## MCP flow validation
+
+Use the MCP server tooling in `mcp/server.js` for reproducible zip generation and execution:
+
+1. `generate_artifacts_from_ecore`
+2. `execute_momot_job`
+3. `run_end_to_end`
+
+Recommended smoke flow:
+
+1. Start the REST container and verify `/health`.
+2. Call `run_end_to_end` with `knownGoodFixture=true`.
+3. Confirm response contains:
+	- `success: true`
+	- `exitCode: 0`
+	- non-empty `outputs`
+
+If `exitCode` is non-zero, inspect:
+
+1. `diagnostics.rootCauseHint`
+2. `logTail`
+3. `runner/runner.log` from the response zip

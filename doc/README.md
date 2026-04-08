@@ -36,6 +36,7 @@ The [modelserver](modelserver/README.md) subfolder contains standalone/OSGi and 
 - Model and module paths are relative and included in the zip payload.
 - `/run` requests upload zip as raw binary (`application/zip`), not multipart form-data.
 - `script=<relative-path>` exactly matches the extracted path inside the uploaded archive.
+- Interactive API docs are available at `/docs` (OpenAPI JSON at `/openapi.json`).
 - Search algorithm and experiment settings are syntactically valid.
 - Output writes to an expected subfolder (for example `out/`).
 - A dry-run validation is completed before posting to `/run`.

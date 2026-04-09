@@ -198,6 +198,7 @@ public final class RestServerMain {
 
          final byte[] responseZip = buildResponseZip(jobDir);
          exchange.getResponseHeaders().add("Content-Type", "application/zip");
+         exchange.getResponseHeaders().add("Content-Disposition", "attachment; filename=\"result.zip\"");
          exchange.sendResponseHeaders(200, responseZip.length);
          try(OutputStream outputStream = exchange.getResponseBody()) {
             outputStream.write(responseZip);
@@ -529,6 +530,15 @@ public final class RestServerMain {
                               "responses": {
                                  "200": {
                                     "description": "Run result bundle",
+                                    "headers": {
+                                       "Content-Disposition": {
+                                          "description": "Suggests a file name for download clients.",
+                                          "schema": {
+                                             "type": "string",
+                                             "example": "attachment; filename=result.zip"
+                                          }
+                                       }
+                                    },
                                     "content": {
                                        "application/zip": {
                                           "schema": {

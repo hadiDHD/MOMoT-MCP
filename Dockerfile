@@ -1,8 +1,8 @@
-FROM maven:3.9-eclipse-temurin AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /src
 COPY . .
 ENV MAVEN_OPTS="-Djdk.xml.maxGeneralEntitySizeLimit=0 -Djdk.xml.totalEntitySizeLimit=0"
-RUN mvn -pl tooling/at.ac.tuwien.big.momot.tooling,plugins/at.ac.tuwien.big.moea,plugins/at.ac.tuwien.big.momot.core,plugins/at.ac.tuwien.big.momot.runner -am -Declipse.release=latest -DskipTests=true clean package
+RUN mvn -pl tooling/at.ac.tuwien.big.momot.tooling,plugins/at.ac.tuwien.big.moea,plugins/at.ac.tuwien.big.momot.core,plugins/at.ac.tuwien.big.momot.lang,plugins/at.ac.tuwien.big.momot.runner -am -Declipse.release=latest -DskipTests=true -Dxtend.skip=true clean package
 RUN mkdir -p /app/repository/plugins
 RUN cp /src/plugins/at.ac.tuwien.big.momot.runner/target/at.ac.tuwien.big.momot.runner-*.jar /app/repository/plugins/
 RUN cp /src/plugins/at.ac.tuwien.big.moea/target/at.ac.tuwien.big.moea-*.jar /app/repository/plugins/

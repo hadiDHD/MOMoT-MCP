@@ -8,7 +8,7 @@
 	<packaging>pom</packaging>
 	<name>MOMoT</name>
 	<description>Marrying Optimization and Model Transformations</description>
-	<url>http://martin-fleck.github.io/momot/</url>
+	<url>https://hadidhd.github.io/momot-2.0/</url>
 	<inceptionYear>2016</inceptionYear>
 
 	<modules>

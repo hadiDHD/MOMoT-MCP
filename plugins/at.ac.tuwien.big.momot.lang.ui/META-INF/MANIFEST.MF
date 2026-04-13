@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: at.ac.tuwien.big.momot.lang.ui
-Bundle-Vendor: http://martin-fleck.github.io/momot/
+Bundle-Vendor: https://hadidhd.github.io/momot-2.0/
 Bundle-Version: 2.0.0.qualifier
 Bundle-SymbolicName: at.ac.tuwien.big.momot.lang.ui; singleton:=true
 Bundle-ActivationPolicy: lazy

@@ -6,12 +6,12 @@
       provider-name="%Bundle-Vendor"
       plugin="at.ac.tuwien.big.momot.branding">
 
-   <description url="http://martin-fleck.github.io/momot/">
+	<description url="https://hadidhd.github.io/momot-2.0/">
       MOMoT Example Projects
    </description>
 
    <url>
-      <update label="MOMoT Update Site" url="http://martin-fleck.github.io/momot/"/>
+        <update label="MOMoT Update Site" url="https://hadidhd.github.io/momot-2.0/eclipse/updates/"/>
    </url>
 
    <requires>

@@ -1,57 +1,63 @@
-#!/bin/bash
-set -ev # Exit with nonzero exit code if anything fails
+#!/usr/bin/env bash
+set -euo pipefail
 
-# SOURCE_BRANCH="develop"
-TARGET_BRANCH="gh-pages"
+TARGET_BRANCH="${TARGET_BRANCH:-gh-pages}"
+DEPLOY_REMOTE="${DEPLOY_REMOTE:-origin}"
+SOURCE_REPO_DIR="${SOURCE_REPO_DIR:-$(pwd)}"
+UPDATE_SITE_DIR="${UPDATE_SITE_DIR:-${SOURCE_REPO_DIR}/releng/at.ac.tuwien.big.momot.update/target/repository}"
+SITE_REPO_SUBPATH="${SITE_REPO_SUBPATH:-eclipse/updates/latest/develop}"
+EXPECTED_FORK_SLUG="hadiDHD/momot-2.0"
 
-# Pull requests and commits to other branches shouldn't try to deploy, just build to verify
-# if [ "$TRAVIS_PULL_REQUEST" != "false" -o "$TRAVIS_BRANCH" != "$SOURCE_BRANCH" ]; then
-if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-    echo "Skipping deployment."
+if [[ "${TRAVIS_PULL_REQUEST:-false}" != "false" ]]; then
+    echo "Skipping deployment for pull request build."
     exit 0
 fi
 
-# Save some useful information
-REPO=`git config remote.origin.url`
-SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
-SHA=`git rev-parse --verify HEAD`
+if [[ ! -d "${UPDATE_SITE_DIR}" ]]; then
+    echo "Update site directory missing: ${UPDATE_SITE_DIR}" >&2
+    exit 1
+fi
 
-# Clone the existing gh-pages for this repo into martin-fleck/gh-pages
-cd $TRAVIS_BUILD_DIR/..
-git clone --depth=50 --branch=gh-pages https://github.com/martin-fleck/momot.git gh-pages
-cd gh-pages
+if [[ ! -f "${UPDATE_SITE_DIR}/content.jar" && ! -f "${UPDATE_SITE_DIR}/content.xml" ]]; then
+    echo "Missing p2 metadata: content.jar/content.xml not found in ${UPDATE_SITE_DIR}" >&2
+    exit 1
+fi
 
-# Clean out latest development site
-rm -rf eclipse/updates/latest/develop/** || exit 0
+if [[ ! -f "${UPDATE_SITE_DIR}/artifacts.jar" && ! -f "${UPDATE_SITE_DIR}/artifacts.xml" ]]; then
+    echo "Missing p2 metadata: artifacts.jar/artifacts.xml not found in ${UPDATE_SITE_DIR}" >&2
+    exit 1
+fi
 
-# Copy compiled update site to gh-pages
-cp -rf $TRAVIS_BUILD_DIR/releng/at.ac.tuwien.big.momot.update/target/repository/** eclipse/updates/latest/develop/
-cp -f eclipse/updates/archive/1.0.0.201605221935/index.md eclipse/updates/latest/develop/
+REMOTE_URL="$(git -C "${SOURCE_REPO_DIR}" remote get-url "${DEPLOY_REMOTE}")"
+if [[ "${REMOTE_URL}" != *"github.com/${EXPECTED_FORK_SLUG}"* && "${REMOTE_URL}" != *"github.com:${EXPECTED_FORK_SLUG}"* ]]; then
+    echo "Refusing publish: ${DEPLOY_REMOTE} (${REMOTE_URL}) is not the expected fork ${EXPECTED_FORK_SLUG}." >&2
+    exit 1
+fi
 
-# Now let's go have some fun with the cloned repo
-git config user.name "Travis CI"
-git config user.email "$COMMIT_AUTHOR_EMAIL"
+SHA="$(git -C "${SOURCE_REPO_DIR}" rev-parse --verify HEAD)"
+WORK_DIR="$(cd "${SOURCE_REPO_DIR}/.." && pwd)/gh-pages"
 
-# If there are no changes to the compiled out (e.g. this is a README update) then just bail.
-if `git diff --quiet` ; then
-    echo "No changes to the output on this push; exiting."
+rm -rf "${WORK_DIR}"
+if git ls-remote --exit-code --heads "${REMOTE_URL}" "${TARGET_BRANCH}" >/dev/null 2>&1; then
+    git clone --depth=50 --branch "${TARGET_BRANCH}" "${REMOTE_URL}" "${WORK_DIR}"
+else
+    git clone --depth=50 "${REMOTE_URL}" "${WORK_DIR}"
+    git -C "${WORK_DIR}" checkout --orphan "${TARGET_BRANCH}"
+    git -C "${WORK_DIR}" rm -rf . >/dev/null 2>&1 || true
+fi
+
+mkdir -p "${WORK_DIR}/${SITE_REPO_SUBPATH}"
+rm -rf "${WORK_DIR}/${SITE_REPO_SUBPATH}"/*
+cp -a "${UPDATE_SITE_DIR}"/. "${WORK_DIR}/${SITE_REPO_SUBPATH}/"
+
+git -C "${WORK_DIR}" config user.name "${GIT_AUTHOR_NAME:-MOMoT Build Bot}"
+git -C "${WORK_DIR}" config user.email "${GIT_AUTHOR_EMAIL:-momot-bot@users.noreply.github.com}"
+
+if [[ -z "$(git -C "${WORK_DIR}" status --porcelain -- "${SITE_REPO_SUBPATH}")" ]]; then
+    echo "No update-site changes to publish; exiting."
     exit 0
 fi
 
-# Commit the "changes", i.e. the new version.
-# The delta will show diffs between new and old versions.
-git add -A .
-git commit -m "Deploy development update site to GitHub Pages: ${SHA}"
-
-# Get the deploy key by using Travis's stored variables to decrypt deploy_key.enc
-ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
-ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
-ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
-ENCRYPTED_IV=${!ENCRYPTED_IV_VAR}
-openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in deploy_key.enc -out deploy_key -d
-chmod 600 deploy_key
-eval `ssh-agent -s`
-ssh-add deploy_key
-
-# Now that we're all set up, we can push.
-git push $SSH_REPO $TARGET_BRANCH
+git -C "${WORK_DIR}" add "${SITE_REPO_SUBPATH}"
+git -C "${WORK_DIR}" commit -m "Deploy update site from ${SHA}"
+git -C "${WORK_DIR}" push "${REMOTE_URL}" "HEAD:${TARGET_BRANCH}"

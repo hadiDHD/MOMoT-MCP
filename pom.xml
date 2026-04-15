@@ -42,8 +42,8 @@
 		<!-- Eclipse properties -->
 
 		<!-- default environment overridden by profile, tycho preempts profile -->
-		<java.source>21</java.source>
-		<java.target>21</java.target>
+		<java.source>17</java.source>
+		<java.target>17</java.target>
 		<eclipse.targetrelease>2026-03</eclipse.targetrelease>
 		<target.version>${project.version}</target.version>
 		<xtend.version>2.37.0</xtend.version>

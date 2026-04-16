@@ -1,13 +1,14 @@
 {
   "name": "momot-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test",
-    "test:integration": "node --test test/integration.test.js"
+    "test": "node --test test/lib.test.js",
+    "test:integration": "node --test test/integration.test.js",
+    "test:stdio": "node --test test/stdio.test.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.11.0",

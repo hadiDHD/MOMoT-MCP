@@ -1,8 +1,23 @@
 # MOMoT MCP Server Usage
 
-This MCP server exposes robust tools for artifact generation and REST execution through the existing MOMoT runner endpoint.
+This MCP server exposes tools for artifact generation and REST execution through the existing MOMoT runner endpoint.
 
-## Tools
+## Release status (v2.0.0-alpha.1)
+
+**Note:** This is a v2.0.0-alpha.1 proof-of-concept. The server exposes six tools, of which **three form the validated functional subset** covered by automated tests (unit, integration, and MCP stdio protocol). The remaining three are **backward-compatible aliases** exposed for experimentation and are **not covered by automated tests**. Their behavior may change, or they may be removed in future releases, without prior deprecation notice.
+
+### Tool surface overview
+
+| Tool | Group | Tested |
+|------|-------|--------|
+| `generate_artifacts_from_ecore` | Validated | Unit + integration + stdio |
+| `execute_momot_job` | Validated | Unit + integration + stdio |
+| `run_end_to_end` | Validated | Unit + integration + stdio |
+| `momot_generate` | PoC alias | No |
+| `momot_validate` | PoC alias | No |
+| `momot_run` | PoC alias | No |
+
+## Tools (validated functional subset)
 
 ### generate_artifacts_from_ecore
 Input schema highlights:
@@ -130,8 +145,57 @@ From mcp directory:
 npm install
 npm test
 
-With REST container running:
+With REST container running (integration tests):
 
 $env:RUN_INTEGRATION_TESTS='1'
 $env:MOMOT_REST_BASE_URL='http://localhost:8080'
 npm run test:integration
+
+With REST container running (MCP stdio protocol tests):
+
+$env:RUN_MCP_STDIO_TESTS='1'
+$env:MOMOT_REST_BASE_URL='http://localhost:8080'
+npm run test:stdio
+
+## Backward-compatible aliases (PoC / unvalidated)
+
+The following three tools are exposed for experimentation and backward compatibility with earlier prototypes. They are **not covered by automated tests** and their behavior is **not guaranteed**. They may be removed in future releases without prior deprecation notice. If you want reliable MDE functionality, use the validated tools above.
+
+### momot_generate
+
+Generates a minimal `.momot` search scaffolding from a template. Produces approximately 10 lines of hand-written `.momot` syntax interpolated with input parameters. Does not parse any Ecore, does not generate Henshin rules, does not use `generateArtifactsFromEcore` internally.
+
+Input schema highlights:
+- prompt (optional): embedded as comment
+- packageName (optional, default `momot.search`)
+- className (optional): embedded as comment
+- modelPath (required): embedded in the generated `model.file` field
+- henshinModules (optional, default `[]`): embedded as string list
+
+Output: envelope with a single `text` content item containing the generated script.
+
+**Not equivalent to `generate_artifacts_from_ecore`.** That tool produces a full set of artifacts (script + Henshin rules + normalized Ecore + optional Java helper). `momot_generate` produces only the script skeleton.
+
+### momot_validate
+
+Returns `{valid: true}` if the provided `scriptContent` contains any non-whitespace character; `{valid: false}` otherwise. Does not parse the script, does not check syntax, does not validate semantics. An invalid `.momot` script with arbitrary text content will be reported as `valid: true`.
+
+Input schema:
+- scriptContent (required)
+
+Output: envelope with a `text` content item containing JSON `{"valid": true|false}`.
+
+### momot_run
+
+Thin ergonomic wrapper around `execute_momot_job`. Accepts `scriptContent` as an inline string (rather than base64-encoded inside `filesBase64`), encodes it internally, and delegates to `executeMomotJob` with a default script path of `job.momot` if none is provided.
+
+Input schema:
+- scriptPath (optional, default `job.momot`)
+- scriptContent (required)
+- filesBase64 (optional, default `{}`): additional files to include in the zip
+- restBaseUrl (optional)
+
+Output: same envelope as `execute_momot_job`.
+
+**Overlaps with `execute_momot_job`** with a slightly different input shape. Use `execute_momot_job` when you already have a base64-encoded script; use `momot_run` when you want to submit an inline script string.
+

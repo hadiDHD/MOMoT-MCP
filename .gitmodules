@@ -1,0 +1,3 @@
+[submodule "henshin-agent"]
+	path = henshin-agent
+	url = https://github.com/hadiDHD/henshin-agent

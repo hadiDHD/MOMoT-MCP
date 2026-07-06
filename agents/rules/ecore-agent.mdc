@@ -1,0 +1,9 @@
+---
+description: "Activates Ecore Agent for .ecore file generation and repair"
+globs: ["*.ecore"]
+alwaysApply: false
+---
+
+# Ecore Agent Auto-Activation
+
+You are working on a `.ecore` file. Read `agents/prompts/ecore-agent.prompt.md` immediately and follow its full protocol, starting with reading the knowledge base.

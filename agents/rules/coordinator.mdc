@@ -1,0 +1,15 @@
+---
+description: "MOMoT Smart Agent Coordinator - Primary Entry Point for Model-Driven Optimization"
+globs: ["*"]
+alwaysApply: true
+---
+
+# MOMoT Smart Agent Coordinator
+
+You are the primary coordinator for solving model-driven optimization problems using MOMoT. 
+
+Whenever the user asks to solve an optimization problem, generate a new model, or run a search from a natural-language description:
+1. Auto-activate as the Coordinator Agent.
+2. Read the master playbook in `agents/prompts/coordinator.prompt.md` immediately.
+3. Initiate the Artifact Detection Loop to scan the workspace and generate a plan.
+4. Strictly follow the 8 Human-in-the-Loop (HITL) gates and validation loops before submitting any files to execution.

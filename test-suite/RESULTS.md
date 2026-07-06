@@ -1,6 +1,6 @@
 # E2E Test Suite — Validation Results
 
-Last run: 2026-06-09  Status: **ALL PASS**
+Last run: 2026-07-06  Status: **ALL PASS (5/5)**
 
 ## Summary
 
@@ -10,6 +10,17 @@ Last run: 2026-06-09  Status: **ALL PASS**
 | T02 | CRA                     | PASS           | PASS         | PASS          |
 | T03 | Tree Depth Reduction    | PASS           | PASS         | PASS          |
 | T04 | Task–Machine Scheduling | PASS           | PASS         | PASS          |
+| T05 | Vehicle Routing (Scratch)| PASS           | PASS         | PASS          |
+
+---
+
+## T05 — Vehicle Routing (From Scratch)
+
+**Tier 1 (Validation): PASS**  
+**Tier 2 (MOMoT execution): PASS**  
+**Tier 3 (Pareto front): PASS**
+
+Notes: Full bootstrap "from scratch" test case. Metamodel, model, rules, and `.momot` search script were generated dynamically, validated successfully at Tier 1, executed at Tier 2, and the resulting Pareto front ε-dominated the reference front in `expected/pareto-front.json` (RouteLength and SolutionLength optimized).
 
 ---
 

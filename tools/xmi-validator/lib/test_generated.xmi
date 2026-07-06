@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stack:StackModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:stack="http://at.ac.tuwien.big.momot/examples/stack/1.0"
+    xsi:schemaLocation="http://at.ac.tuwien.big.momot/examples/stack/1.0 ../../stack.ecore">
+  <stacks xmi:id="_stack0">
+    <elements xmi:id="_el0" value="10"/>
+    <elements xmi:id="_el1" value="20"/>
+    <elements xmi:id="_el2" value="30"/>
+    <elements xmi:id="_el3" value="40"/>
+    <elements xmi:id="_el4" value="50"/>
+  </stacks>
+  <stacks xmi:id="_stack1"/>
+  <stacks xmi:id="_stack2"/>
+</stack:StackModel>

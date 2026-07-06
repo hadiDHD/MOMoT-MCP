@@ -1,0 +1,9 @@
+---
+description: "Activates XMI Agent for .xmi model instance generation and repair"
+globs: ["*.xmi"]
+alwaysApply: false
+---
+
+# XMI Agent Auto-Activation
+
+You are working on a `.xmi` file. Read `agents/prompts/xmi-agent.prompt.md` immediately and follow its full protocol, starting with reading the knowledge base.

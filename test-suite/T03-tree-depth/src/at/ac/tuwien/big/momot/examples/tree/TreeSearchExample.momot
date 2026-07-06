@@ -18,6 +18,9 @@ search = {
 
    transformations = {
       modules = [ "model/tree.henshin" ]
+      ignoreParameters = [
+         "Tree::reparentNode::newParentDepth"
+      ]
       parameterValues = {
          // nodeName: any non-root node is a candidate for reparenting
          "Tree::reparentNode::nodeName"       : new RandomListValue(#["A", "B", "C", "D", "E", "F"])
@@ -28,9 +31,6 @@ search = {
          // does not need to be listed as a random value — it is matched from the model.
          "Tree::reparentNode::newParentDepth" : new RandomIntegerValue(0, 5)
       }
-      ignoreParameters = [
-         "Tree::reparentNode::newParentDepth"
-      ]
    }
 
    fitness = {

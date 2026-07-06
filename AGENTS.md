@@ -26,11 +26,12 @@ mcp/                          MCP server (Node.js, stdio transport)
   README.md                   Tool schema reference
 headless-example/             REST-ready job payloads (zip-in / zip-out examples)
 stack-example-minimal/        Canonical working example (stack load balancing)
-test-suite/                   E2E benchmark suite — 4 verified test cases
+test-suite/                   E2E benchmark suite — 5 verified test cases
   T01-stack-balancing/
   T02-cra/
   T03-tree-depth/
   T04-task-scheduling/
+  T05-vehicle-routing/
   RESULTS.md                  Latest pass/fail status for all tiers
 doc/
   00-architecture-overview.md Full architecture with diagrams
@@ -38,6 +39,8 @@ doc/
 tools/
   henshin-validator/          Fast CLI validator for .henshin (no Docker needed)
   momot-validator/            Fast CLI validator for .momot (Maven setup required)
+  ecore-validator/            Fast CLI validator for .ecore (no Docker needed)
+  xmi-validator/              Fast CLI validator for .xmi (no Docker needed)
 .github/prompts/              Reusable agent prompt templates
   henshin-agent.prompt.md     Henshin expert loop
   henshin-loop.prompt.md      Two-tier iterative Henshin fix loop
@@ -173,152 +176,22 @@ If Docker is unavailable, skip steps 4–5 and document as SKIP.
 
 ## Writing `.momot` Scripts
 
-### File structure
-
-```
-package <java.package.name>
-
-import <ClassName>           // only MOMoT/MOEA classes on the classpath
-
-search = {
-   model          = { file = "<model/input/model.xmi>" }
-   solutionLength = <N>
-
-   transformations = {
-      modules       = [ "<model/module.henshin>" ]
-      ignoreUnits   = [ "<Module::Rule>" ]
-      ignoreParameters = [ "<Module::Rule::param>" ]
-      parameterValues = {
-         "<Module::Rule::param>" : new RandomListValue(#["v1", "v2"])
-         "<Module::Rule::param>" : new RandomIntegerValue(min, max)
-      }
-   }
-
-   fitness = {
-      objectives = {
-         <ObjectiveName> : minimize "<OCL expression>"
-         SolutionLength  : minimize new TransformationLengthDimension
-      }
-      solutionRepairer = new TransformationPlaceholderRepairer
-   }
-
-   algorithms = {
-      Random   : moea.createRandomSearch()
-      NSGA_II  : moea.createNSGAII(new TournamentSelection(2), new OnePointCrossover(1.0),
-                   new TransformationPlaceholderMutation(0.15),
-                   new TransformationParameterMutation(0.1, orchestration.moduleManager))
-      NSGA_III : moea.createNSGAIII(4, ...)
-   }
-}
-
-experiment = { populationSize = 100  maxEvaluations = 2000  nrRuns = 5
-               progressListeners = [ new SeedRuntimePrintListener ] }
-
-analysis  = { indicators = [ hypervolume additiveEpsilonIndicator ]  printOutput ... }
-results   = { objectives = { outputFile = "out/objectives/overall_objectives.pf" printOutput }
-              solutions  = { outputDirectory = "out/solutions/all/" }
-              models     = { outputDirectory = "out/models/all/" printOutput } }
-```
-
-### Objective expressions — OCL string syntax
-
-Write the fitness as an OCL string evaluated from the **model root element**:
-
-| Problem | Expression |
-|---|---|
-| Stack load range | `"stacks.load->max() - stacks.load->min()"` |
-| Tree max depth | `"nodes.depth->max()"` |
-| Makespan (tasks on machines) | `"machines->collect(m \| tasks->select(t \| t.assignedTo = m).duration->sum())->max()"` |
-| CRA NegCRAIndex | See `test-suite/T02-cra/src/.../CRASearchExample.momot` for the full two-part expression using `oclIsKindOf`/`oclAsType` |
-
-Rules:
-- `minimize "expr"` → standard OCL from the root; must return a number.
-- `minimize new TransformationLengthDimension` → built-in; counts non-placeholder steps.
-- `minimize { 0.0 }` → **placeholder** — search runs but objective is meaningless; always replace before Tier 3.
-- Use `oclIsKindOf(ClassName)` / `oclAsType(ClassName)` to navigate polymorphic collections.
-- Use `->sum()`, `->max()`, `->min()`, `->size()`, `->collect()`, `->select()`, `->reject()`.
-
-### Parameter value classes
-
-| Class | Use when |
-|---|---|
-| `RandomListValue(#["a","b","c"])` | Fixed enumeration of string values |
-| `RandomIntegerValue(min, max)` | Integer range |
-| `RandomStringValue("a","b","c")` | Deprecated — use `RandomListValue` |
-
-### Checklist before every commit
-
-- [ ] Structural validation passes: `node tools/momot-validator/validate.mjs --validate-structure <file>`
-- [ ] Semantic validation passes: `node tools/momot-validator/validate.mjs --validate-semantic <file> --project-root <job-root>`
-- [ ] Compile validation passes: `node tools/momot-validator/validate.mjs --compile <file> --project-root <job-root>`
-- [ ] All `model.file` and `modules` paths resolve relative to the job root
-- [ ] OCL objectives are real expressions, not `{ 0.0 }` placeholders
-
-### CLI validator commands
-
-```bash
-# Tier 1b-a — parse only
-node tools/momot-validator/validate.mjs --validate-structure <file.momot>
-
-# Tier 1b-b — full Xtext validation
-node tools/momot-validator/validate.mjs --validate-semantic <file.momot> --project-root <job-root>
-
-# Tier 1b-c — generate Java and compile
-node tools/momot-validator/validate.mjs --compile <file.momot> --project-root <job-root>
-```
-
-T01 example (from repository root; use full paths, not `...`):
-
-```bash
-node tools/momot-validator/validate.mjs --validate-structure test-suite/T01-stack-balancing/src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot
-
-node tools/momot-validator/validate.mjs --validate-semantic test-suite/T01-stack-balancing/src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot --project-root test-suite/T01-stack-balancing
-
-node tools/momot-validator/validate.mjs --compile test-suite/T01-stack-balancing/src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot --project-root test-suite/T01-stack-balancing
-```
-
-All modes return a single JSON line to stdout. Exit code `0` = success.
-
-### Module/rule name format in scripts
-
-- `ignoreUnits` / `ignoreParameters` path: `"ModuleName::RuleName"` or `"ModuleName::RuleName::paramName"`
-- The `ModuleName` is the `name` attribute of `<henshin:Module>` in the `.henshin` file.
-- All paths are **case-sensitive**.
+For detailed instructions, syntax guidelines, parameter value classes, and the 25-point pre-flight checklist for MOMoT scripts, refer directly to the **MOMoT Wiki and supplements**:
+- **MOMoT Wiki Index**: [doc/momot/README.md](doc/momot/README.md)
+- **10. Worked OCL Objective Examples**: [doc/momot/10-ocl-expressions.md](doc/momot/10-ocl-expressions.md)
+- **11. Rule Parameter Value Injection**: [doc/momot/11-parameter-injection.md](doc/momot/11-parameter-injection.md)
+- **12. Java Helper Integration**: [doc/momot/12-java-helper-integration.md](doc/momot/12-java-helper-integration.md)
+- **13. Pre-Flight Checklist**: [doc/momot/13-generation-checklist.md](doc/momot/13-generation-checklist.md)
 
 ---
 
 ## Writing Henshin Rules
 
-Full reference: `doc/henshin/` (chapters 00–09).  
-Common XMI templates: `doc/henshin/07-common-patterns.md`.  
-Debugging runbook: `doc/henshin/09-debugging-runbook.md`.
-
-### Checklist before every commit
-
-- [ ] `xmlns:xsi` declared on `<henshin:Module>` root element
-- [ ] `<imports href="<nsURI>#/"/>` nsURI matches `.ecore` exactly
-- [ ] Every `<type href="..."/>` resolves: `<nsURI>#//<ClassName>` for nodes, `<nsURI>#//<Class>/<feature>` for edges/attributes
-- [ ] Every attribute `<type>` points to an `EAttribute`, not an `EReference`
-- [ ] Every LHS node xmi:id has a matching `<mappings origin="..." image="..."/>` entry (or is deleted in RHS)
-- [ ] NAC `<mappings>` inside `<child xsi:type="henshin:NestedCondition">` map LHS nodes to NAC conclusion nodes
-- [ ] Structural validation passes: `node tools/henshin-validator/validate.mjs --validate-structure <file>`
-- [ ] Semantic validation passes: `node tools/henshin-validator/validate.mjs --validate-semantic <file> --metamodel <ecore>`
-
-### CLI validator commands
-
-```bash
-# Tier 1a — XMI structure (no metamodel)
-node tools/henshin-validator/validate.mjs --validate-structure <file.henshin>
-
-# Tier 1b — type reference resolution
-node tools/henshin-validator/validate.mjs --validate-semantic <file.henshin> --metamodel <file.ecore>
-
-# Tier 1c — rule application (produces out_result.xmi)
-node tools/henshin-validator/validate.mjs --apply <file.henshin> --metamodel <file.ecore> \
-  --model <file.xmi> --rule <ruleName>
-```
-
-All modes return a single JSON line to stdout. Exit code `0` = success.
+For detailed instructions, rule anatomy, binding to metamodels, common patterns, and debugging runbooks for Henshin transformations, refer directly to the **Henshin Expert Wiki**:
+- **Henshin Wiki Index**: [doc/henshin/README.md](doc/henshin/README.md)
+- **Common Henshin Patterns**: [doc/henshin/07-common-patterns.md](doc/henshin/07-common-patterns.md)
+- **Henshin Debugging Runbook**: [doc/henshin/09-debugging-runbook.md](doc/henshin/09-debugging-runbook.md)
+- **Sub-Agent Standalone Wiki**: [henshin-agent/wiki/](henshin-agent/wiki/)
 
 ---
 
@@ -334,7 +207,7 @@ All modes return a single JSON line to stdout. Exit code `0` = success.
 | T03 | Tree Depth Reduction | reparentNode | MaxDepth ↓, SolutionLength ↓ |
 | T04 | Task–Machine Scheduling | reassignTask | Makespan ↓, SolutionLength ↓ |
 
-Current status: **all 4 pass all 3 tiers** — see `test-suite/RESULTS.md`.
+Current status: **all 4 pass all 3 tiers** — see `test-suite/RESULTS.md`. (T05 is also added for from-scratch verification).
 
 ### Running a test case
 
@@ -404,3 +277,51 @@ To re-run the full verification + repair loop, apply the prompt:
 | E2E results | `test-suite/RESULTS.md` |
 | Verify-and-fix prompt | `.github/prompts/e2e-test-suite-verify-and-fix.prompt.md` |
 | Henshin agent prompt | `.github/prompts/henshin-agent.prompt.md` |
+
+---
+
+## Smart Agent Entry Point
+
+The system supports a complete **Smart Agent** flow designed to bootstrap optimization problems from plain English. The **Coordinator Agent** serves as the single entry point.
+
+### Sub-Agents and Triggers
+
+- **Coordinator Agent (`agents/prompts/coordinator.prompt.md`)**: Activates globally. Manages plan-detection, delegation, sequential verification, and final Docker execution.
+- **Artifact Detector (`agents/prompts/artifact-detector.prompt.md`)**: Analyzes workspace contents and prompt keywords to create the generation plan.
+- **Ecore Agent (`agents/prompts/ecore-agent.prompt.md`)**: Activates on `*.ecore`. Generates and semantic-validates EMF metamodels.
+- **XMI Agent (`agents/prompts/xmi-agent.prompt.md`)**: Activates on `*.xmi`. Instantiates initial bad-start baseline model states.
+- **Henshin Sub-Agent (`agents/prompts/henshin-subagent.prompt.md`)**: Activates on `*.henshin`. Generates, semantic-validates, and runs dry-run rules.
+- **MOMoT Agent (`agents/prompts/momot-agent.prompt.md`)**: Activates on `*.momot`. Author's OCL objectives and compiles Java execution setups.
+- **Java-Helper Agent (`agents/prompts/java-helpers-agent.prompt.md`)**: Activates on `*Helper.java`/`*Fitness.java`. Writes custom Java metric logic.
+
+### Human-in-the-Loop (HITL) Gate Protocol
+
+The Smart Agent enforces 8 interactive check gates (G0–G7) where the user must inspect, edit, or approve artifacts before the pipeline moves forward:
+1. **G0**: Generation Plan approval.
+2. **G1**: Metamodel structure and classes.
+3. **G2**: Instance population and initial imbalance.
+4. **G3**: Henshin transformation rule names and mappings.
+5. **G4**: OCL objectives and algorithm parameters.
+6. **G5**: Java helper logic (if applicable).
+7. **G6**: Pre-Execution summary and file check.
+8. **G7**: Post-Execution Pareto front evaluation.
+
+To bypass HITL checks in CI/CD pipelines, set the environment variable `HITL_ENABLED=false` to automatically approve each gate.
+
+---
+
+## Henshin Sub-Agent Delegation Contract
+
+Any Henshin generation request from the MOMoT coordinator MUST invoke the Henshin sub-agent prompt.
+
+- **Trigger:** When `.henshin` generation or repair is needed.
+- **Workflow:** Read knowledge bases (`henshin-agent/wiki/` + `doc/henshin/`), map requirements to LHS/RHS/NACs, generate unique XMI IDs, and run 3-tier validation (`validate-structure`, `validate-semantic`, and `apply`).
+- **Input Contract:**
+  - `ecorePath` / `ecoreContent`
+  - `modelPath` / `modelContent` (XMI instance)
+  - `nlRuleDescription` (rules to generate)
+- **Output Contract:**
+  - `henshinPath`
+  - `henshinContent`
+  - `validationResult` (3 tiers)
+

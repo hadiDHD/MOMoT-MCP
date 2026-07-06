@@ -25,10 +25,10 @@ The **`standalone`** branch is a container-first, headless distribution. It omit
 
 - **Docker REST server** — zip-in / zip-out job execution (`POST /run`)
 - **MCP server** (`mcp/`) — stdio JSON-RPC bridge for LLM agents
-- **E2E test suite** (`test-suite/`) — four verified benchmarks (T01–T04)
-- **Henshin validator CLI** (`tools/henshin-validator/`) — local rule validation without Docker
+- **E2E test suite** (`test-suite/`) — five verified benchmarks (T01–T05) including new Vehicle Routing
+- **CLI validators** (`tools/`) — local validation tools for Henshin, MOMoT, Ecore, and XMI
 - **Minimal stack example** (`stack-example-minimal/`) — deterministic smoke test
-- **Agent playbook** — [AGENTS.md](AGENTS.md) documents the full agent workflow
+- **Agent playbook** — [AGENTS.md](AGENTS.md) documents the full agent workflow and Smart Agent system
 
 Use **`main`** if you need the Eclipse update site, UI plugins, or the full set of wizard-based case studies.
 
@@ -94,10 +94,12 @@ See [mcp/README.md](mcp/README.md) for tool schemas (`generate_artifacts_from_ec
 | `headless/` | Headless runtime modules |
 | `mcp/` | MCP server (Node.js, stdio transport) |
 | `stack-example-minimal/` | Canonical stack load-balancing fixture |
-| `test-suite/` | E2E benchmarks with expected Pareto fronts |
+| `test-suite/` | E2E benchmarks (T01-T05) with expected Pareto fronts |
 | `headless-example/` | REST-ready example job payloads |
 | `tools/henshin-validator/` | CLI validator for `.henshin` rules |
-| `doc/` | Architecture docs and validation runbooks |
+| `tools/ecore-validator/` | CLI validator for `.ecore` metamodels |
+| `tools/xmi-validator/` | CLI validator for `.xmi` model instances |
+| `doc/` | Architecture docs, wikis, and validation runbooks |
 | `Dockerfile.headless` | Production headless image (recommended) |
 | `Dockerfile` | Alternate REST image build |
 
@@ -154,6 +156,4 @@ See [README on main](https://github.com/jku-win-se/MOMoT2/blob/main/README.md) a
 
 MOMoT was developed by Martin Fleck ([@martin-fleck](https://github.com/martin-fleck)), Javier Troya ([@javitroya](https://github.com/javitroya)), and Manuel Wimmer ([@manuelWimmer](https://github.com/manuelWimmer)).
 
-The MCP server and agent integration on the **standalone** branch were developed by MohammadHadi Dehghani ([@hadiDHD](https://github.com/hadiDHD)).
-
-The MCP server and agent integration on the **standalone** branch were developed by MohammadHadi Dehghani ([@hadiDHD](https://github.com/hadiDHD)).
+The MCP server, Smart Agent coordinator system, Ecore and XMI CLI validators, and agent integration on the **standalone** branch were developed by MohammadHadi Dehghani ([@hadiDHD](https://github.com/hadiDHD)).

@@ -4,6 +4,17 @@ import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
+import { generateEcore } from './lib/generateEcore.js';
+import { generateXmi } from './lib/generateXmi.js';
+
+// Export new Smart Agent utilities
+export { detectArtifacts } from './lib/detectArtifacts.js';
+export { generateEcore } from './lib/generateEcore.js';
+export { generateXmi } from './lib/generateXmi.js';
+export { validateEcore } from './lib/validateEcore.js';
+export { validateXmi } from './lib/validateXmi.js';
+export { generateJavaHelper } from './lib/generateJavaHelper.js';
+export { ArtifactStateMachine, checkForVagueInput } from './lib/hitlHandler.js';
 
 const DEFAULT_REST_BASE_URL = 'http://localhost:8080';
 const DEFAULT_RETRY_COUNT = 2;
@@ -186,7 +197,38 @@ export async function executeMomotJob(input) {
 }
 
 export async function runEndToEnd(input) {
-  const generated = await generateArtifactsFromEcore(input);
+  let ecorePath = input.ecorePath;
+  let ecoreContent = input.ecoreContent;
+  let modelPath = input.modelPath;
+  let modelContent = input.modelContent;
+
+  if (input.nlProblemDescription && !ecorePath && !ecoreContent) {
+    // Generate Ecore
+    const gEcore = await generateEcore({
+      nlDescription: input.nlProblemDescription,
+      packageName: input.packageName || 'generated'
+    });
+    ecoreContent = gEcore.ecoreContent;
+    ecorePath = gEcore.ecorePath;
+
+    // Generate XMI
+    const gXmi = await generateXmi({
+      ecorePath,
+      nlDescription: input.nlProblemDescription,
+      instanceSize: 5,
+      outputPath: 'model/input/model/model.xmi'
+    });
+    modelContent = gXmi.xmiContent;
+    modelPath = gXmi.xmiPath;
+  }
+
+  const generated = await generateArtifactsFromEcore({
+    ...input,
+    ecorePath,
+    ecoreContent,
+    modelPath,
+    modelContent
+  });
   if (!generated.success) {
     return {
       success: false,

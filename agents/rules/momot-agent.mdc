@@ -1,0 +1,9 @@
+---
+description: "Activates MOMoT Agent for .momot script generation and repair"
+globs: ["*.momot"]
+alwaysApply: false
+---
+
+# MOMoT Agent Auto-Activation
+
+You are working on a `.momot` file. Read `agents/prompts/momot-agent.prompt.md` immediately and follow its full protocol, starting with reading the knowledge base.

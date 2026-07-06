@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test test/lib.test.js",
+    "test": "node --test test/lib.test.js test/hitl.test.js",
     "test:integration": "node --test test/integration.test.js",
     "test:stdio": "node --test test/stdio.test.js"
   },

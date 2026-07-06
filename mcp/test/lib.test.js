@@ -6,7 +6,13 @@ import {
   generateArtifactsFromEcore,
   normalizeZipPath,
   parseResponseZip,
-  validateGeneratedScenario
+  validateGeneratedScenario,
+  detectArtifacts,
+  generateEcore,
+  generateXmi,
+  validateEcore,
+  validateXmi,
+  generateJavaHelper
 } from '../lib.js';
 
 test('normalizeZipPath rejects traversal and drive letters', () => {
@@ -64,4 +70,61 @@ test('parseResponseZip extracts exit code, outputs, and log tail', async () => {
   assert.equal(response.request.script, 'src/demo/Search.momot');
   assert.deepEqual(response.outputs, ['out/models/result.xmi']);
   assert.equal(response.logTail, 'line2\nline3');
+});
+
+test('detectArtifacts plans correctly on T01', async () => {
+  const result = await detectArtifacts({
+    workspaceDir: '../test-suite/T01-stack-balancing',
+    userPrompt: 'optimize stack load balancing'
+  });
+  assert.equal(result.success, true);
+  assert.ok(result.plan.length >= 3);
+});
+
+test('generateEcore and validateEcore workflow', async () => {
+  const result = await generateEcore({
+    nlDescription: 'A model containing stacks and elements',
+    packageName: 'testpackage',
+    outputPath: '../tools/ecore-validator/lib/test_generated.ecore',
+    validate: false
+  });
+  assert.equal(result.success, true);
+  assert.ok(result.ecoreContent.includes('StackModel'));
+
+  const valResult = await validateEcore({
+    ecorePath: '../tools/ecore-validator/lib/test_generated.ecore',
+    mode: 'structure'
+  });
+  assert.equal(valResult.success, true);
+});
+
+test('generateXmi and validateXmi workflow', async () => {
+  const result = await generateXmi({
+    ecorePath: '../test-suite/T01-stack-balancing/model/stack.ecore',
+    nlDescription: 'optimize stack load balancing',
+    instanceSize: 5,
+    outputPath: '../tools/xmi-validator/lib/test_generated.xmi',
+    validate: false
+  });
+  assert.equal(result.success, true);
+  assert.ok(result.xmiContent.includes('_el4'));
+
+  const valResult = await validateXmi({
+    xmiPath: '../tools/xmi-validator/lib/test_generated.xmi',
+    mode: 'structure'
+  });
+  assert.equal(valResult.success, true);
+});
+
+test('generateJavaHelper produces compilable output structure', async () => {
+  const result = await generateJavaHelper({
+    ecorePath: '../test-suite/T01-stack-balancing/model/stack.ecore',
+    objectiveDescription: 'Minimize makespan of scheduling',
+    packageName: 'generated.search',
+    className: 'SchedulingFitness',
+    template: 'graph-metric',
+    outputPath: '../mcp/test/SchedulingFitness.java'
+  });
+  assert.equal(result.success, true);
+  assert.ok(result.javaContent.includes('public class SchedulingFitness'));
 });

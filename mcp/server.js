@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { executeMomotJob, generateArtifactsFromEcore, runEndToEnd, buildKnownGoodStackFixture, validateHenshin, validateMomot } from './lib.js';
+import { executeMomotJob, generateArtifactsFromEcore, runEndToEnd, buildKnownGoodStackFixture, validateHenshin, validateMomot, detectArtifacts, generateEcore, generateXmi, validateEcore, validateXmi, generateJavaHelper } from './lib.js';
 
 const server = new McpServer({ name: 'momot-mcp', version: '1.1.0' });
 
@@ -117,6 +117,91 @@ server.tool(
   },
   async (input) => {
     const result = await validateMomot(input);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  }
+);
+
+server.tool(
+  'detect_artifacts',
+  {
+    workspaceDir: z.string().describe('Absolute or relative workspace path to scan'),
+    userPrompt: z.string().describe('Natural-language problem description'),
+    dryRun: z.boolean().optional().default(false)
+  },
+  async (input) => {
+    const result = await detectArtifacts(input);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  }
+);
+
+server.tool(
+  'generate_ecore',
+  {
+    nlDescription: z.string().describe('Natural-language description of the problem domain'),
+    packageName: z.string().optional().describe('Java package name'),
+    nsURI: z.string().optional().describe('EPackage nsURI'),
+    outputPath: z.string().optional().describe('Output Ecore file path'),
+    validate: z.boolean().optional().default(true)
+  },
+  async (input) => {
+    const result = await generateEcore(input);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  }
+);
+
+server.tool(
+  'generate_xmi',
+  {
+    ecorePath: z.string().describe('Path to the .ecore metamodel file'),
+    nlDescription: z.string().optional().describe('Optional scenario details'),
+    instanceSize: z.number().int().positive().optional().default(5),
+    badStartPolicy: z.enum(['worst-case', 'random', 'balanced']).optional().default('worst-case'),
+    outputPath: z.string().optional().describe('Output XMI file path'),
+    validate: z.boolean().optional().default(true)
+  },
+  async (input) => {
+    const result = await generateXmi(input);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  }
+);
+
+server.tool(
+  'validate_ecore',
+  {
+    ecorePath: z.string().describe('Path to the .ecore file'),
+    mode: z.enum(['structure', 'semantic']).default('structure').describe('Validation mode')
+  },
+  async (input) => {
+    const result = await validateEcore(input);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  }
+);
+
+server.tool(
+  'validate_xmi',
+  {
+    xmiPath: z.string().describe('Path to the .xmi instance file'),
+    mode: z.enum(['structure', 'semantic', 'load']).default('structure').describe('Validation mode'),
+    ecorePath: z.string().optional().describe('Path to Ecore metamodel (required for semantic/load)')
+  },
+  async (input) => {
+    const result = await validateXmi(input);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  }
+);
+
+server.tool(
+  'generate_java_helper',
+  {
+    ecorePath: z.string().describe('Path to the .ecore file'),
+    objectiveDescription: z.string().describe('Objective definition description'),
+    packageName: z.string().describe('FQN Java package'),
+    className: z.string().optional().describe('Class name for generated Java file'),
+    template: z.enum(['graph-metric', 'external-data', 'cached']).optional().default('graph-metric'),
+    outputPath: z.string().optional().describe('Output Java file path')
+  },
+  async (input) => {
+    const result = await generateJavaHelper(input);
     return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
   }
 );

@@ -25,8 +25,10 @@ A dedicated Henshin expert agent is available for writing, validating, and testi
 Full Henshin reference documentation is in `doc/henshin/` (files `00`–`09` + examples).
 See imported content at the bottom of this file for details.
 
-### CLI Validator (no Docker needed)
-`tools/henshin-validator/` provides a fast local feedback loop:
+### CLI Validators (no Docker needed)
+
+We provide fast local feedback loops using Node.js + EMF CLI validators:
+- **Henshin Validator** (`tools/henshin-validator/`):
 ```bash
 # Check XMI structure only (no metamodel required)
 node tools/henshin-validator/validate.mjs --validate-structure <file.henshin>
@@ -36,6 +38,24 @@ node tools/henshin-validator/validate.mjs --validate-semantic <file.henshin> --m
 
 # Apply a named rule to a model instance
 node tools/henshin-validator/validate.mjs --apply <file.henshin> --metamodel <file.ecore> --model <file.xmi> --rule <ruleName>
+```
+
+- **Ecore Validator** (`tools/ecore-validator/`):
+```bash
+# Check XML well-formedness and schema compliance
+node tools/ecore-validator/validate.mjs --validate-structure <file.ecore>
+
+# Resolve internal opposite references and check package semantics
+node tools/ecore-validator/validate.mjs --validate-semantic <file.ecore>
+```
+
+- **XMI Validator** (`tools/xmi-validator/`):
+```bash
+# Check XML well-formedness
+node tools/xmi-validator/validate.mjs --validate-structure <file.xmi>
+
+# Validate model instance semantic type resolution against Ecore metamodel
+node tools/xmi-validator/validate.mjs --validate-semantic --ecore <file.ecore> <file.xmi>
 ```
 All modes return a single JSON line to stdout. Exit code `0` = success.
 
@@ -51,7 +71,32 @@ It references the knowledge base and enforces the two-step validation workflow (
 
 ## MCP Tools Available
 
-1. `generate_artifacts_from_ecore`
+1. `detect_artifacts`
+- Purpose: Scans a workspace recursively and parses a user prompt to determine existing files and needed modifications.
+- Input: `workspaceDir` (required), `userPrompt` (required).
+- Output: `plan` (JSON array of artifact actions), `summary`.
+
+2. `generate_ecore`
+- Purpose: Generates an Ecore metamodel on disk from a natural-language description using a selected architectural pattern.
+- Input: `nlDescription` (required), `packageName`, `nsURI`, `outputPath`.
+
+3. `generate_xmi`
+- Purpose: Generates a valid starting worst-case imbalanced model instance matching the specified Ecore metamodel.
+- Input: `ecorePath` (required), `nlDescription`, `instanceSize`, `outputPath`.
+
+4. `validate_ecore`
+- Purpose: Wraps local Ecore CLI validator for structural and semantic checks.
+- Input: `ecorePath` (required), `mode` (`structure`|`semantic`).
+
+5. `validate_xmi`
+- Purpose: Wraps local XMI CLI validator for XML well-formedness, semantic binding, and programmatic load checks.
+- Input: `xmiPath` (required), `mode` (`structure`|`semantic`|`load`), `ecorePath` (required for semantic/load).
+
+6. `generate_java_helper`
+- Purpose: Generates a custom Java helper class extending `AbstractEGraphFitness` using copy-pasteable templates.
+- Input: `ecorePath` (required), `objectiveDescription` (required), `packageName` (required), `className`, `template`.
+
+7. `generate_artifacts_from_ecore`
 - Purpose: Build MOMoT script + related artifacts from metamodel/model context.
 - Required input: `ecoreContent` or `ecorePath`.
 - Recommended input: `modelContent` or `modelPath`.

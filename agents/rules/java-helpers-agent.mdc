@@ -1,0 +1,9 @@
+---
+description: "Activates Java-Helper Agent for custom fitness/operator generation"
+globs: ["*Helper.java", "*Fitness.java", "*Operator.java"]
+alwaysApply: false
+---
+
+# Java-Helper Agent Auto-Activation
+
+You are working on a Java helper file for MOMoT. Read `agents/prompts/java-helpers-agent.prompt.md` immediately and follow its full protocol, starting with reading the knowledge base.

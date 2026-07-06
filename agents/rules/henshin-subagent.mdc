@@ -1,0 +1,13 @@
+---
+description: "Activates full Henshin Sub-Agent protocol for .henshin file generation and repair"
+globs: ["*.henshin"]
+alwaysApply: false
+---
+
+# Henshin Sub-Agent Auto-Activation
+
+You are working on a `.henshin` file. You are operating as the Henshin Sub-Agent.
+Read `agents/prompts/henshin-subagent.prompt.md` IMMEDIATELY and follow its full protocol.
+
+Do not generate any `.henshin` content until you have read both knowledge bases listed
+in the prompt's "Knowledge Base" section.

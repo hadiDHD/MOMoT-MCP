@@ -10,6 +10,12 @@ This MCP server exposes tools for artifact generation and REST execution through
 
 | Tool | Group | Tested |
 |------|-------|--------|
+| `detect_artifacts` | Validated | Unit |
+| `generate_ecore` | Validated | Unit |
+| `generate_xmi` | Validated | Unit |
+| `validate_ecore` | Validated | Unit |
+| `validate_xmi` | Validated | Unit |
+| `generate_java_helper` | Validated | Unit |
 | `generate_artifacts_from_ecore` | Validated | Unit + integration + stdio |
 | `execute_momot_job` | Validated | Unit + integration + stdio |
 | `run_end_to_end` | Validated | Unit + integration + stdio |
@@ -20,6 +26,24 @@ This MCP server exposes tools for artifact generation and REST execution through
 | `momot_run` | PoC alias | No |
 
 ## Tools (validated functional subset)
+
+### detect_artifacts
+Scans workspace directory recursively and parses user natural-language prompt to determine what files already exist and which need to be generated/repaired, producing an ordered Generation Plan.
+
+### generate_ecore
+Generates a structurally and semantically valid `.ecore` metamodel from a natural-language description using a selected metamodel template pattern.
+
+### generate_xmi
+Generates a valid initial `.xmi` model instance matching the specified Ecore metamodel and initial worst-case "bad start" sizing requirements.
+
+### validate_ecore
+Validates a `.ecore` metamodel using the Ecore CLI validator at structural and semantic validation tiers.
+
+### validate_xmi
+Validates a `.xmi` model instance file at structural, semantic, and programmatic EMF load tiers.
+
+### generate_java_helper
+Generates a custom Java helper class extending `AbstractEGraphFitness` for advanced fitness objectives using one of three canonical shapes (graph-metric, external-data, or cached).
 
 ### generate_artifacts_from_ecore
 Input schema highlights:

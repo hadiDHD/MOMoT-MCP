@@ -1,7 +1,5 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
-import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
@@ -687,13 +685,4 @@ export async function buildKnownGoodStackFixture() {
   };
 
   return { scriptPath, filesBase64: files };
-}
-
-export function maybeCreateDebugDir(enabled) {
-  if (!enabled) {
-    return null;
-  }
-  const temp = path.join(os.tmpdir(), `momot-mcp-debug-${Date.now()}-${crypto.randomUUID()}`);
-  fs.mkdirSync(temp, { recursive: true });
-  return temp;
 }

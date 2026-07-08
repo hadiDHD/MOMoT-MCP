@@ -4,15 +4,16 @@ import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
-import { generateEcore } from './lib/generateEcore.js';
-import { generateXmi } from './lib/generateXmi.js';
 
 // Export new Smart Agent utilities
 export { detectArtifacts } from './lib/detectArtifacts.js';
 export { generateEcore } from './lib/generateEcore.js';
 export { generateXmi } from './lib/generateXmi.js';
+export { generateHenshin } from './lib/generateHenshin.js';
+export { generateMomot } from './lib/generateMomot.js';
 export { validateEcore } from './lib/validateEcore.js';
 export { validateXmi } from './lib/validateXmi.js';
+export { validateJavaHelper } from './lib/validateJavaHelper.js';
 export { generateJavaHelper } from './lib/generateJavaHelper.js';
 export { ArtifactStateMachine, checkForVagueInput } from './lib/hitlHandler.js';
 
@@ -21,119 +22,6 @@ const DEFAULT_RETRY_COUNT = 2;
 const DEFAULT_RETRY_DELAY_MS = 500;
 const DEFAULT_REQUEST_TIMEOUT_MS = 120000;
 const DEFAULT_LOG_TAIL_LINES = 40;
-
-export async function generateArtifactsFromEcore(input) {
-  const ecoreContent = loadEcoreContent(input);
-  const modelInfo = parseEcoreSummary(ecoreContent);
-
-  const packageName = sanitizeJavaPackage(input.packageName || 'generated.momot.search');
-  const className = sanitizeJavaIdentifier(input.className || 'GeneratedSearch');
-  const scriptPath = normalizeZipPath(
-    input.scriptPath || `src/${packageName.replace(/\./g, '/')}/${className}.momot`
-  );
-  const henshinPath = normalizeZipPath(input.henshinPath || 'model/generated.henshin');
-  const ecorePath = normalizeZipPath(input.ecorePathInZip || 'model/generated.ecore');
-  const modelPath = normalizeZipPath(input.modelPathInZip || 'model/input/model/model.xmi');
-  const helperPath = normalizeZipPath(
-    input.helperPathInZip || `src/${packageName.replace(/\./g, '/')}/${className}Helper.java`
-  );
-
-  const warnings = [];
-  if (modelInfo.classNames.length === 0) {
-    warnings.push('No EClass declarations found in Ecore; generated script uses conservative defaults.');
-  }
-  if (input.modelContent == null && input.modelPath == null && !input.allowMissingModelForGeneration) {
-    warnings.push('No model instance provided. Execution will fail unless a valid model file is added.');
-  }
-
-  const objectiveText = Array.isArray(input.objectiveHints) && input.objectiveHints.length > 0
-    ? input.objectiveHints.join('; ')
-    : (input.problemDescription || 'Generated optimization scenario');
-
-  const scriptContent = buildMomotScript({
-    packageName,
-    modelPath,
-    henshinPath,
-    objectiveText
-  });
-
-  const henshinContent = buildHenshinModule(modelInfo);
-  const helperContent = input.includeJavaHelper
-    ? buildJavaHelper({ packageName, className, objectiveText })
-    : null;
-
-  const generatedFiles = {
-    [ecorePath]: Buffer.from(ecoreContent, 'utf8').toString('base64'),
-    [henshinPath]: Buffer.from(henshinContent, 'utf8').toString('base64'),
-    [scriptPath]: Buffer.from(scriptContent, 'utf8').toString('base64')
-  };
-
-  if (input.modelContent != null) {
-    generatedFiles[modelPath] = Buffer.from(input.modelContent, 'utf8').toString('base64');
-  } else if (input.modelPath != null) {
-    const fileContent = fs.readFileSync(path.resolve(input.modelPath), 'utf8');
-    generatedFiles[modelPath] = Buffer.from(fileContent, 'utf8').toString('base64');
-  }
-
-  if (helperContent != null) {
-    generatedFiles[helperPath] = Buffer.from(helperContent, 'utf8').toString('base64');
-  }
-
-  const validation = validateGeneratedScenario({ generatedFiles, scriptPath, henshinPath, ecorePath, modelPath });
-
-  return {
-    success: validation.valid,
-    warnings: [...warnings, ...validation.warnings],
-    summary: validation.valid
-      ? `Generated ${Object.keys(generatedFiles).length} artifacts for package ${packageName}.`
-      : 'Generated artifacts contain validation issues.',
-    scriptPath,
-    generatedFiles,
-    modelInfo,
-    diagnostics: validation.diagnostics
-  };
-}
-
-export function validateGeneratedScenario({ generatedFiles, scriptPath, henshinPath, ecorePath, modelPath }) {
-  const warnings = [];
-  const diagnostics = {};
-
-  for (const key of Object.keys(generatedFiles)) {
-    try {
-      normalizeZipPath(key);
-    } catch (error) {
-      diagnostics.invalidPath = error.message;
-      return { valid: false, warnings, diagnostics };
-    }
-  }
-
-  if (!generatedFiles[scriptPath]) {
-    diagnostics.missingScript = `Missing script file at ${scriptPath}`;
-    return { valid: false, warnings, diagnostics };
-  }
-  if (!generatedFiles[henshinPath]) {
-    diagnostics.missingHenshin = `Missing Henshin module at ${henshinPath}`;
-    return { valid: false, warnings, diagnostics };
-  }
-  if (!generatedFiles[ecorePath]) {
-    diagnostics.missingEcore = `Missing Ecore file at ${ecorePath}`;
-    return { valid: false, warnings, diagnostics };
-  }
-  if (!generatedFiles[modelPath]) {
-    warnings.push(`Model path ${modelPath} is missing; execution may fail.`);
-  }
-
-  const scriptText = Buffer.from(generatedFiles[scriptPath], 'base64').toString('utf8');
-  if (!scriptText.includes('search = {')) {
-    diagnostics.invalidScript = 'Generated MOMoT script is missing search block.';
-    return { valid: false, warnings, diagnostics };
-  }
-  if (!scriptText.includes(`file = "${modelPath}"`)) {
-    warnings.push('Generated script does not reference expected model path.');
-  }
-
-  return { valid: true, warnings, diagnostics };
-}
 
 export async function executeMomotJob(input) {
   const restBaseUrl = normalizeBaseUrl(input.restBaseUrl || process.env.MOMOT_REST_BASE_URL || DEFAULT_REST_BASE_URL);
@@ -193,69 +81,6 @@ export async function executeMomotJob(input) {
       request: parsed.request,
       rootCauseHint
     }
-  };
-}
-
-export async function runEndToEnd(input) {
-  let ecorePath = input.ecorePath;
-  let ecoreContent = input.ecoreContent;
-  let modelPath = input.modelPath;
-  let modelContent = input.modelContent;
-
-  if (input.nlProblemDescription && !ecorePath && !ecoreContent) {
-    // Generate Ecore
-    const gEcore = await generateEcore({
-      nlDescription: input.nlProblemDescription,
-      packageName: input.packageName || 'generated'
-    });
-    ecoreContent = gEcore.ecoreContent;
-    ecorePath = gEcore.ecorePath;
-
-    // Generate XMI
-    const gXmi = await generateXmi({
-      ecorePath,
-      nlDescription: input.nlProblemDescription,
-      instanceSize: 5,
-      outputPath: 'model/input/model/model.xmi'
-    });
-    modelContent = gXmi.xmiContent;
-    modelPath = gXmi.xmiPath;
-  }
-
-  const generated = await generateArtifactsFromEcore({
-    ...input,
-    ecorePath,
-    ecoreContent,
-    modelPath,
-    modelContent
-  });
-  if (!generated.success) {
-    return {
-      success: false,
-      exitCode: -1,
-      scriptPath: generated.scriptPath,
-      generatedFiles: Object.keys(generated.generatedFiles || {}).sort(),
-      warnings: generated.warnings,
-      summary: 'Artifact generation failed validation.',
-      logTail: '',
-      outputs: [],
-      diagnostics: generated.diagnostics
-    };
-  }
-
-  const execution = await executeMomotJob({
-    restBaseUrl: input.restBaseUrl,
-    scriptPath: generated.scriptPath,
-    filesBase64: generated.generatedFiles,
-    requestTimeoutMs: input.requestTimeoutMs,
-    retries: input.retries,
-    retryDelayMs: input.retryDelayMs,
-    logTailLines: input.logTailLines
-  });
-
-  return {
-    ...execution,
-    warnings: [...generated.warnings, ...execution.warnings]
   };
 }
 
@@ -323,131 +148,6 @@ export function normalizeZipPath(entryPath) {
     throw new Error(`Drive letters are not allowed in zip entry paths: ${entryPath}`);
   }
   return normalized;
-}
-
-export function parseEcoreSummary(ecoreContent) {
-  const nsUriMatch = ecoreContent.match(/nsURI\s*=\s*"([^"]+)"/);
-  const packageMatch = ecoreContent.match(/<[^>]*EPackage[^>]*\sname\s*=\s*"([^"]+)"/);
-  const classNames = Array.from(ecoreContent.matchAll(/<[^>]*EClass[^>]*\sname\s*=\s*"([^"]+)"/g)).map((m) => m[1]);
-
-  return {
-    packageName: packageMatch ? packageMatch[1] : 'generated',
-    nsURI: nsUriMatch ? nsUriMatch[1] : 'http://generated/1.0',
-    classNames: unique(classNames)
-  };
-}
-
-function loadEcoreContent(input) {
-  if (input.ecoreContent != null) {
-    if (input.ecoreContent.trim().length === 0) {
-      throw new Error('ecoreContent is empty.');
-    }
-    return input.ecoreContent;
-  }
-  if (input.ecorePath != null) {
-    const resolved = path.resolve(input.ecorePath);
-    return fs.readFileSync(resolved, 'utf8');
-  }
-  throw new Error('Provide either ecoreContent or ecorePath.');
-}
-
-function buildMomotScript({ packageName, modelPath, henshinPath, objectiveText }) {
-  return [
-    `package ${packageName}`,
-    '',
-    // Keywords 'search' and 'fitness' are reserved in the MOMoT Xtext DSL,
-    // so they must be escaped with '^' when appearing as segments of an
-    // import FQN -- otherwise the DSL parser fails to resolve the type and
-    // the Java code generator emits 'new Object()' as a fallback, causing
-    // a compile-time type mismatch against IFitnessDimension. See issue #3.
-    'import at.ac.tuwien.big.momot.^search.^fitness.dimension.TransformationLengthDimension',
-    '',
-    'search = {',
-    '   model = {',
-    `      file = "${modelPath}"`,
-    '   }',
-    '   solutionLength = 8',
-    '   transformations = {',
-    `      modules = [ "${henshinPath}" ]`,
-    '   }',
-    '   fitness = {',
-    '      objectives = {',
-    `         Objective : minimize { 0.0 } // ${escapeInlineComment(objectiveText)}`,
-    '         SolutionLength : minimize new TransformationLengthDimension',
-    '      }',
-    '   }',
-    '   algorithms = {',
-    '      Random : moea.createRandomSearch()',
-    '   }',
-    '}',
-    '',
-    'experiment = {',
-    '   populationSize = 20',
-    '   maxEvaluations = 200',
-    '   nrRuns = 1',
-    '}',
-    '',
-    'results = {',
-    '   models = {',
-    '      outputDirectory = "out/models/"',
-    '   }',
-    '   objectives = {',
-    '      outputFile = "out/objectives.txt"',
-    '      printOutput',
-    '   }',
-    '}',
-    ''
-  ].join('\n');
-}
-
-function buildHenshinModule(modelInfo) {
-  const nsURI = modelInfo.nsURI || 'http://generated/1.0';
-  const classNames = modelInfo.classNames || ['Root'];
-  const firstClass = classNames[0] || 'Root';
-
-  const lines = [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<henshin:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:henshin="http://www.eclipse.org/emf/2011/Henshin" name="Generated">',
-    `  <imports href="${escapeXml(nsURI)}#/"/>`
-  ];
-
-  // Add a "Create" rule for each class (up to 3)
-  classNames.slice(0, 3).forEach((className) => {
-    lines.push(`  <units xsi:type="henshin:Rule" name="create_${escapeXml(className)}">`);
-    lines.push('    <lhs/>');
-    lines.push('    <rhs>');
-    lines.push(`      <nodes name="newNode" type="${escapeXml(nsURI)}#//${escapeXml(className)}"/>`);
-    lines.push('    </rhs>');
-    lines.push('  </units>');
-  });
-
-  // Add a "Delete" rule for the first class
-  if (classNames.length > 0) {
-    lines.push(`  <units xsi:type="henshin:Rule" name="delete_${escapeXml(firstClass)}">`);
-    lines.push('    <lhs>');
-    lines.push(`      <nodes name="toDelete" type="${escapeXml(nsURI)}#//${escapeXml(firstClass)}"/>`);
-    lines.push('    </lhs>');
-    lines.push('    <rhs/>');
-    lines.push('  </units>');
-  }
-
-  lines.push('</henshin:Module>');
-  lines.push('');
-  return lines.join('\n');
-}
-
-function buildJavaHelper({ packageName, className, objectiveText }) {
-  return [
-    `package ${packageName};`,
-    '',
-    `public final class ${className}Helper {`,
-    `  public static final String OBJECTIVE_HINT = "${escapeJavaString(objectiveText)}";`,
-    '',
-    `  private ${className}Helper() {`,
-    '  }',
-    '}',
-    ''
-  ].join('\n');
 }
 
 async function checkRestHealth({ restBaseUrl, requestTimeoutMs, retries, retryDelayMs }) {
@@ -569,45 +269,6 @@ function safeParseJson(value) {
   } catch {
     return { raw: value };
   }
-}
-
-function unique(values) {
-  return Array.from(new Set(values));
-}
-
-function escapeXml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function escapeInlineComment(value) {
-  return String(value || '').replace(/[\r\n]/g, ' ').replace(/\*\//g, '* /');
-}
-
-function escapeJavaString(value) {
-  return String(value)
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\r/g, '\\r')
-    .replace(/\n/g, '\\n');
-}
-
-function sanitizeJavaPackage(value) {
-  const cleaned = String(value)
-    .split('.')
-    .map((segment) => sanitizeJavaIdentifier(segment || 'generated').toLowerCase())
-    .filter(Boolean)
-    .join('.');
-  return cleaned || 'generated.momot.search';
-}
-
-function sanitizeJavaIdentifier(value) {
-  const raw = String(value || 'Generated').replace(/[^A-Za-z0-9_]/g, '_');
-  const first = /^[A-Za-z_]/.test(raw) ? raw : `_${raw}`;
-  return first.length > 0 ? first : 'Generated';
 }
 
 /**

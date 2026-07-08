@@ -29,15 +29,20 @@ const SERVER_PATH = path.resolve(
   'server.js'
 );
 
-// Tools that are part of the validated functional subset (v2.0.0-alpha.1).
-// The server also exposes 3 backward-compatible alias tools (momot_generate,
-// momot_validate, momot_run) that are PoC / unvalidated and not asserted
-// here; see mcp/README.md for the full surface. This test informs about
-// their presence via console.log but does not fail when they appear.
+// Tools that are part of the active, validated functional subset.
 const VALIDATED_TOOLS = [
-  'generate_artifacts_from_ecore',
   'execute_momot_job',
-  'run_end_to_end'
+  'validate_henshin',
+  'validate_momot',
+  'detect_artifacts',
+  'generate_ecore',
+  'generate_xmi',
+  'generate_henshin',
+  'generate_momot',
+  'validate_ecore',
+  'validate_xmi',
+  'validate_java_helper',
+  'generate_java_helper'
 ];
 
 // Minimal but well-formed Ecore. Enough for generateArtifactsFromEcore to
@@ -153,46 +158,6 @@ if (process.env.RUN_MCP_STDIO_TESTS !== '1') {
   });
 
   // -------------------------------------------------------------------------
-  // Test 3: generate_artifacts_from_ecore (no REST needed)
-
-  test('generate_artifacts_from_ecore with minimal ecore returns success envelope', async () => {
-    const result = await client.callTool({
-      name: 'generate_artifacts_from_ecore',
-      arguments: {
-        ecoreContent: MIN_ECORE,
-        modelContent: '<root/>',
-        packageName: 'demo.search',
-        className: 'StdioTestSearch'
-      }
-    });
-
-    assert.ok(result.content, 'Envelope should have content array');
-    assert.equal(result.content[0]?.type, 'text', 'First content item should be of type text');
-
-    let payload;
-    try {
-      payload = JSON.parse(result.content[0].text);
-    } catch (err) {
-      assert.fail(`Content text should be valid JSON, got: ${String(result.content[0].text).slice(0, 200)}`);
-    }
-
-    assert.equal(
-      payload.success,
-      true,
-      `Generation failed: ${payload.summary || JSON.stringify(payload).slice(0, 300)}`
-    );
-    assert.ok(
-      typeof payload.scriptPath === 'string' && payload.scriptPath.includes('.momot'),
-      `scriptPath should reference a .momot file, got: ${payload.scriptPath}`
-    );
-    assert.ok(payload.generatedFiles, 'Envelope should include generatedFiles');
-    assert.ok(
-      Object.keys(payload.generatedFiles).length > 0,
-      'generatedFiles should not be empty'
-    );
-  });
-
-  // -------------------------------------------------------------------------
   // Test 4: execute_momot_job with missing required fields
 
   test('execute_momot_job with empty arguments is rejected cleanly', async () => {
@@ -224,164 +189,4 @@ if (process.env.RUN_MCP_STDIO_TESTS !== '1') {
     // If it threw, Zod validation rejected the call at the SDK boundary.
     // That is the preferred outcome and we accept it implicitly here.
   });
-
-  // -------------------------------------------------------------------------
-  // Test 5: run_end_to_end with known-good fixture (requires REST)
-
-  test(
-    'run_end_to_end with knownGoodFixture=true succeeds end-to-end',
-    { timeout: 240000 },
-    async (t) => {
-      if (!process.env.MOMOT_REST_BASE_URL) {
-        t.skip('MOMOT_REST_BASE_URL not set, skipping REST-dependent test');
-        return;
-      }
-
-      const result = await client.callTool({
-        name: 'run_end_to_end',
-        arguments: { knownGoodFixture: true }
-      });
-
-      assert.ok(result.content, 'Envelope should have content array');
-      assert.equal(result.content[0]?.type, 'text');
-
-      const payload = JSON.parse(result.content[0].text);
-      assert.equal(
-        payload.success,
-        true,
-        `run_end_to_end failed: summary=${payload.summary || '(none)'}; logTail=${String(payload.logTail || '').slice(0, 500)}`
-      );
-      assert.equal(
-        payload.exitCode,
-        0,
-        `exitCode should be 0, got ${payload.exitCode}`
-      );
-      assert.ok(
-        Array.isArray(payload.outputs),
-        'Envelope should include outputs array (may be empty)'
-      );
-    }
-  );
-
-  // -------------------------------------------------------------------------
-  // Test 6: run_end_to_end non-fixture branch (Gate C.1)
-  //
-  // Exercises the real generation + execution pipeline with an actual Ecore
-  // (stack-example-minimal/model/stack.ecore) supplied inline as content.
-  // This is the only test that exercises the non-fixture branch of
-  // run_end_to_end, i.e., generateArtifactsFromEcore followed by
-  // executeMomotJob on the generated artifacts.
-  //
-  // Important caveat: the generator produces a script with a constant
-  // objective (`minimize { 0.0 }`) and a Henshin module with a single noop
-  // rule. The generated scenario is therefore trivial from an optimization
-  // standpoint. The assertion here is about pipeline integrity, not about
-  // optimization quality: if exitCode is 0, the pipeline from MCP call ->
-  // regex-based Ecore parsing -> artifact generation -> zip build -> REST
-  // POST -> runner execution -> response parsing is intact.
-
-  test(
-    'run_end_to_end with real stack.ecore generates artifacts and executes',
-    { timeout: 240000 },
-    async (t) => {
-      if (!process.env.MOMOT_REST_BASE_URL) {
-        t.skip('MOMOT_REST_BASE_URL not set, skipping REST-dependent test');
-        return;
-      }
-
-      // Repo root is two levels up from this test file (mcp/test/ -> repo).
-      const repoRoot = path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        '..',
-        '..'
-      );
-      const ecoreFilePath = path.join(
-        repoRoot,
-        'stack-example-minimal',
-        'model',
-        'stack.ecore'
-      );
-      const modelFilePath = path.join(
-        repoRoot,
-        'stack-example-minimal',
-        'model',
-        'input',
-        'model',
-        'model_five_stacks.xmi'
-      );
-
-      // Read fixture files client-side; pass as inline content so the server
-      // does not depend on its own cwd for path resolution.
-      const ecoreContent = fs.readFileSync(ecoreFilePath, 'utf8');
-      const modelContent = fs.readFileSync(modelFilePath, 'utf8');
-
-      const result = await client.callTool({
-        name: 'run_end_to_end',
-        arguments: {
-          ecoreContent,
-          modelContent,
-          packageName: 'stdio.test.generated',
-          className: 'StdioTestGenerated',
-          objectiveHints: ['Smoke test of real-ecore pipeline'],
-          // Request a larger log tail so compile/runtime errors are
-          // visible in the assertion message when exitCode != 0.
-          logTailLines: 200
-        }
-      });
-
-      assert.ok(result.content, 'Envelope should have content array');
-      assert.equal(result.content[0]?.type, 'text');
-
-      const payload = JSON.parse(result.content[0].text);
-
-      // Stratified assertions, most specific failure first.
-
-      // (1) Pipeline integrity: generation produced structural artifacts.
-      assert.ok(
-        typeof payload.scriptPath === 'string' && payload.scriptPath.length > 0,
-        `Envelope must include non-empty scriptPath, got: ${payload.scriptPath}`
-      );
-      assert.ok(
-        Array.isArray(payload.generatedFiles),
-        `Envelope must include generatedFiles array, got: ${typeof payload.generatedFiles}`
-      );
-
-      // (2) Shape: response zip was parsed and exitCode surfaced.
-      assert.ok(
-        Number.isInteger(payload.exitCode),
-        `exitCode should be an integer, got: ${payload.exitCode} (${typeof payload.exitCode})`
-      );
-
-      // Diagnostic dump before the strict assertion. The Java classpath on a
-      // single line can be 5+ KB and would saturate any slice() cap in the
-      // assertion message, hiding the real compiler errors that follow.
-      // Dumping to stdout ensures visibility regardless of message length.
-      if (payload.exitCode !== 0) {
-        console.log('\n--- Test 6 FAILURE DIAGNOSTIC DUMP ---');
-        console.log('summary:', payload.summary);
-        console.log('warnings:', payload.warnings);
-        console.log('scriptPath:', payload.scriptPath);
-        console.log('generatedFiles:', payload.generatedFiles);
-        console.log('diagnostics:', JSON.stringify(payload.diagnostics, null, 2));
-        console.log('--- FULL logTail (' + String(payload.logTail || '').length + ' chars) ---');
-        console.log(payload.logTail);
-        console.log('--- END DIAGNOSTIC DUMP ---\n');
-      }
-
-      // (3) Success: the full pipeline completed without error.
-      assert.equal(
-        payload.exitCode,
-        0,
-        `exitCode non-zero. See FAILURE DIAGNOSTIC DUMP above for full log. ` +
-          `summary=${payload.summary || '(none)'}`
-      );
-
-      // Informational log: generated artifacts count + outputs count.
-      console.log(
-        `[info] Gate C.1 real-ecore pipeline: generated ${payload.generatedFiles.length} ` +
-        `artifact(s) (script=${payload.scriptPath}); ` +
-        `execution produced ${payload.outputs?.length ?? 0} output(s) with exitCode=${payload.exitCode}`
-      );
-    }
-  );
 }

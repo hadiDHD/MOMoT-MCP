@@ -3,15 +3,16 @@ import assert from 'node:assert/strict';
 import JSZip from 'jszip';
 import {
   buildJobZip,
-  generateArtifactsFromEcore,
   normalizeZipPath,
   parseResponseZip,
-  validateGeneratedScenario,
   detectArtifacts,
   generateEcore,
   generateXmi,
+  generateHenshin,
+  generateMomot,
   validateEcore,
   validateXmi,
+  validateJavaHelper,
   generateJavaHelper
 } from '../lib.js';
 
@@ -19,32 +20,6 @@ test('normalizeZipPath rejects traversal and drive letters', () => {
   assert.equal(normalizeZipPath('src/a.momot'), 'src/a.momot');
   assert.throws(() => normalizeZipPath('../evil.txt'));
   assert.throws(() => normalizeZipPath('C:/evil.txt'));
-});
-
-test('generateArtifactsFromEcore creates deterministic core files', async () => {
-  const ecore = `<?xml version="1.0" encoding="UTF-8"?>\n<ecore:EPackage xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="stack" nsURI="http://example/stack/1.0">\n  <eClassifiers xsi:type="ecore:EClass" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="StackModel"/>\n</ecore:EPackage>`;
-
-  const generated = await generateArtifactsFromEcore({
-    ecoreContent: ecore,
-    modelContent: '<root/>',
-    packageName: 'demo.search',
-    className: 'GeneratedSearch'
-  });
-
-  assert.equal(generated.success, true);
-  assert.ok(generated.scriptPath.includes('GeneratedSearch.momot'));
-  assert.ok(generated.generatedFiles['model/generated.ecore']);
-  assert.ok(generated.generatedFiles['model/generated.henshin']);
-
-  const validation = validateGeneratedScenario({
-    generatedFiles: generated.generatedFiles,
-    scriptPath: generated.scriptPath,
-    henshinPath: 'model/generated.henshin',
-    ecorePath: 'model/generated.ecore',
-    modelPath: 'model/input/model/model.xmi'
-  });
-
-  assert.equal(validation.valid, true);
 });
 
 test('buildJobZip uses Linux-compatible entry paths', async () => {
@@ -127,4 +102,61 @@ test('generateJavaHelper produces compilable output structure', async () => {
   });
   assert.equal(result.success, true);
   assert.ok(result.javaContent.includes('public class SchedulingFitness'));
+});
+
+test('generateHenshin produces valid Henshin output', async () => {
+  const result = await generateHenshin({
+    ecorePath: '../test-suite/T01-stack-balancing/model/stack.ecore',
+    outputPath: '../tools/henshin-validator/lib/test_generated.henshin',
+    validate: true
+  });
+  assert.equal(result.success, true);
+  assert.ok(result.henshinContent.includes('<henshin:Module'));
+  assert.ok(result.henshinContent.includes('create_StackModel'));
+});
+
+test('generateMomot produces valid MOMoT output', async () => {
+  const result = await generateMomot({
+    ecorePath: '../test-suite/T01-stack-balancing/model/stack.ecore',
+    modelPath: 'model/input/model/model_five_stacks.xmi',
+    henshinPath: 'model/stack.henshin',
+    objectiveHints: ['Minimize imbalance'],
+    packageName: 'demo.search',
+    className: 'GeneratedSearch',
+    outputPath: '../tools/momot-validator/lib/test_generated.momot',
+    validate: false
+  });
+  assert.equal(result.success, true);
+  assert.ok(result.momotContent.includes('package demo.search'));
+  assert.ok(result.momotContent.includes('modules = [ "model/stack.henshin" ]'));
+});
+
+test('validateJavaHelper structural conformance checks', async () => {
+  const validJava = `package demo;
+import at.ac.tuwien.big.momot.search.fitness.AbstractEGraphFitness;
+import at.ac.tuwien.big.momot.problem.solution.TransformationSolution;
+import org.eclipse.emf.henshin.interpreter.EGraph;
+
+public class MyCustomFitness extends AbstractEGraphFitness {
+    @Override
+    public double[] evaluate(TransformationSolution solution) {
+        return new double[]{ 0.0 };
+    }
+}
+`;
+
+  const invalidJava = `package demo;
+public class MyCustomFitness {
+    public void evaluate() {}
+}
+`;
+
+  const resultValid = await validateJavaHelper({ javaContent: validJava });
+  assert.equal(resultValid.success, true);
+  assert.equal(resultValid.pass, true);
+
+  const resultInvalid = await validateJavaHelper({ javaContent: invalidJava });
+  assert.equal(resultInvalid.success, false);
+  assert.equal(resultInvalid.pass, false);
+  assert.ok(resultInvalid.errors.length > 0);
 });

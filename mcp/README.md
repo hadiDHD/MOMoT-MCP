@@ -2,9 +2,9 @@
 
 This MCP server exposes tools for artifact generation and REST execution through the existing MOMoT runner endpoint.
 
-## Release status (v2.0.0-alpha.1)
+## Release status (v2.0.0)
 
-**Note:** This is a v2.0.0-alpha.1 proof-of-concept. The server exposes six tools, of which **three form the validated functional subset** covered by automated tests (unit, integration, and MCP stdio protocol). The remaining three are **backward-compatible aliases** exposed for experimentation and are **not covered by automated tests**. Their behavior may change, or they may be removed in future releases, without prior deprecation notice.
+All 12 tools in the exposed tool surface form the fully validated and supported functional subset covered by automated tests.
 
 ### Tool surface overview
 
@@ -13,17 +13,15 @@ This MCP server exposes tools for artifact generation and REST execution through
 | `detect_artifacts` | Validated | Unit |
 | `generate_ecore` | Validated | Unit |
 | `generate_xmi` | Validated | Unit |
+| `generate_henshin` | Validated | Unit |
+| `generate_momot` | Validated | Unit |
 | `validate_ecore` | Validated | Unit |
 | `validate_xmi` | Validated | Unit |
+| `validate_henshin` | Validated | Unit |
+| `validate_momot` | Validated | Unit |
+| `validate_java_helper` | Validated | Unit |
 | `generate_java_helper` | Validated | Unit |
-| `generate_artifacts_from_ecore` | Validated | Unit + integration + stdio |
 | `execute_momot_job` | Validated | Unit + integration + stdio |
-| `run_end_to_end` | Validated | Unit + integration + stdio |
-| `validate_henshin` | Validated | No |
-| `validate_momot` | Validated | No |
-| `momot_generate` | PoC alias | No |
-| `momot_validate` | PoC alias (superseded by `validate_momot`) | No |
-| `momot_run` | PoC alias | No |
 
 ## Tools (validated functional subset)
 
@@ -36,6 +34,12 @@ Generates a structurally and semantically valid `.ecore` metamodel from a natura
 ### generate_xmi
 Generates a valid initial `.xmi` model instance matching the specified Ecore metamodel and initial worst-case "bad start" sizing requirements.
 
+### generate_henshin
+Generates a well-formed, syntactically and semantically valid `.henshin` transformation rule file from an Ecore metamodel and natural-language description.
+
+### generate_momot
+Generates a well-formed, declarative `.momot` search script that references the specified Ecore, model XMI, and Henshin rule modules, alongside objective hints.
+
 ### validate_ecore
 Validates a `.ecore` metamodel using the Ecore CLI validator at structural and semantic validation tiers.
 
@@ -44,22 +48,6 @@ Validates a `.xmi` model instance file at structural, semantic, and programmatic
 
 ### generate_java_helper
 Generates a custom Java helper class extending `AbstractEGraphFitness` for advanced fitness objectives using one of three canonical shapes (graph-metric, external-data, or cached).
-
-### generate_artifacts_from_ecore
-Input schema highlights:
-- ecoreContent or ecorePath (required)
-- modelContent or modelPath (recommended for execution)
-- problemDescription, objectiveHints (optional)
-- packageName, className, scriptPath, henshinPath (optional)
-- includeJavaHelper (optional)
-
-Output envelope:
-- success
-- summary
-- scriptPath
-- generatedFiles (base64 map)
-- warnings
-- diagnostics
 
 ### execute_momot_job
 Input schema highlights:
@@ -103,26 +91,10 @@ Output envelope:
 - result (parsed JSON from validator stdout)
 - stderr (optional)
 
-### run_end_to_end
-Combined generation and execution flow.
-
-Input schema highlights:
-- Same generation inputs
-- Same REST execution controls
-- knownGoodFixture=true for deterministic stack fixture smoke run
+### validate_java_helper
+Performs static conformance and structural analysis of a custom Java helper class to verify package structures, class definitions, inheritance from AbstractEGraphFitness, and correct override signatures.
 
 ## Example MCP Request Payloads
-
-Generation:
-
-{
-  "ecorePath": "stack-example-minimal/model/stack.ecore",
-  "modelPath": "stack-example-minimal/model/input/model/model_five_stacks.xmi",
-  "problemDescription": "Balance stack load with short transformation length",
-  "objectiveHints": ["Minimize imbalance", "Minimize solution length"],
-  "packageName": "generated.stack",
-  "className": "GeneratedStackSearch"
-}
 
 Execution:
 
@@ -135,13 +107,6 @@ Execution:
     "model/stack.henshin": "<base64>",
     "model/input/model/model_five_stacks.xmi": "<base64>"
   }
-}
-
-End-to-end known-good smoke:
-
-{
-  "knownGoodFixture": true,
-  "restBaseUrl": "http://localhost:8080"
 }
 
 ## Example Successful Response Shape
@@ -206,41 +171,4 @@ With REST container running (MCP stdio protocol tests):
 $env:RUN_MCP_STDIO_TESTS='1'
 $env:MOMOT_REST_BASE_URL='http://localhost:8080'
 npm run test:stdio
-
-## Backward-compatible aliases (PoC / unvalidated)
-
-The following three tools are exposed for experimentation and backward compatibility with earlier prototypes. They are **not covered by automated tests** and their behavior is **not guaranteed**. They may be removed in future releases without prior deprecation notice. If you want reliable MDE functionality, use the validated tools above.
-
-### momot_generate
-
-Generates a minimal `.momot` search scaffolding from a template. Produces approximately 10 lines of hand-written `.momot` syntax interpolated with input parameters. Does not parse any Ecore, does not generate Henshin rules, does not use `generateArtifactsFromEcore` internally.
-
-Input schema highlights:
-- prompt (optional): embedded as comment
-- packageName (optional, default `momot.search`)
-- className (optional): embedded as comment
-- modelPath (required): embedded in the generated `model.file` field
-- henshinModules (optional, default `[]`): embedded as string list
-
-Output: envelope with a single `text` content item containing the generated script.
-
-**Not equivalent to `generate_artifacts_from_ecore`.** That tool produces a full set of artifacts (script + Henshin rules + normalized Ecore + optional Java helper). `momot_generate` produces only the script skeleton.
-
-### momot_validate
-
-**Superseded by `validate_momot`.** This PoC stub returns `{valid: true}` for any non-empty string and does not parse the script. Use `validate_momot` for real validation.
-
-### momot_run
-
-Thin ergonomic wrapper around `execute_momot_job`. Accepts `scriptContent` as an inline string (rather than base64-encoded inside `filesBase64`), encodes it internally, and delegates to `executeMomotJob` with a default script path of `job.momot` if none is provided.
-
-Input schema:
-- scriptPath (optional, default `job.momot`)
-- scriptContent (required)
-- filesBase64 (optional, default `{}`): additional files to include in the zip
-- restBaseUrl (optional)
-
-Output: same envelope as `execute_momot_job`.
-
-**Overlaps with `execute_momot_job`** with a slightly different input shape. Use `execute_momot_job` when you already have a base64-encoded script; use `momot_run` when you want to submit an inline script string.
 

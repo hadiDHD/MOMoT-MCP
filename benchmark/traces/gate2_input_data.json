@@ -1,0 +1,36 @@
+{
+  "benchmark": "TTC 2016 Class-Responsibility Assignment",
+  "model_id": "Model A",
+  "features": {
+    "attributes": [
+      { "id": "A1", "name": "A1" },
+      { "id": "A2", "name": "A2" },
+      { "id": "A3", "name": "A3" },
+      { "id": "A4", "name": "A4" },
+      { "id": "A5", "name": "A5" }
+    ],
+    "methods": [
+      { "id": "M1", "name": "M1" },
+      { "id": "M2", "name": "M2" },
+      { "id": "M3", "name": "M3" },
+      { "id": "M4", "name": "M4" }
+    ]
+  },
+  "dependencies": {
+    "data_access": [
+      { "from": "M1", "to": "A1" },
+      { "from": "M1", "to": "A2" },
+      { "from": "M2", "to": "A2" },
+      { "from": "M2", "to": "A3" },
+      { "from": "M3", "to": "A3" },
+      { "from": "M3", "to": "A4" },
+      { "from": "M4", "to": "A4" },
+      { "from": "M4", "to": "A5" }
+    ],
+    "method_calls": [
+      { "from": "M1", "to": "M2" },
+      { "from": "M2", "to": "M3" },
+      { "from": "M3", "to": "M4" }
+    ]
+  }
+}

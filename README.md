@@ -26,6 +26,7 @@ The **`standalone`** branch is a container-first, headless distribution. It omit
 - **Docker REST server** — zip-in / zip-out job execution (`POST /run`)
 - **MCP server** (`mcp/`) — stdio JSON-RPC bridge for LLM agents
 - **E2E test suite** (`test-suite/`) — five verified benchmarks (T01–T05) including new Vehicle Routing
+- **Class-Responsibility Assignment (CRA) Bootstrap Benchmark** (`benchmark/`) — Academically rigorous re-synthesis and evolution benchmark with full [REPRODUCTION guide](benchmark/REPRODUCTION.md)
 - **CLI validators** (`tools/`) — local validation tools for Henshin, MOMoT, Ecore, and XMI
 - **Minimal stack example** (`stack-example-minimal/`) — deterministic smoke test
 - **Agent playbook** — [AGENTS.md](AGENTS.md) documents the full agent workflow and Smart Agent system

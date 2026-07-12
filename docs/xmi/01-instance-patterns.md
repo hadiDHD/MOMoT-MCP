@@ -1,6 +1,6 @@
 # XMI Wiki — Chapter 01: Instance Patterns
 
-This chapter illustrates how to instantiate the four canonical Ecore shapes defined in `doc/ecore/05`. It also details the design requirements for creating high-quality, solvable, yet sufficiently challenging initial states for multi-objective search algorithms.
+This chapter illustrates how to instantiate the four canonical Ecore shapes defined in `docs/ecore/05`. It also details the design requirements for creating high-quality, solvable, yet sufficiently challenging initial states for multi-objective search algorithms.
 
 ---
 

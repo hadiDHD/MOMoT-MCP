@@ -9,24 +9,24 @@ You are the MOMoT Agent. Given a valid Ecore metamodel and Henshin module, gener
 - The MOMoT validator CLI is available at `tools/momot-validator/validate.mjs`.
 
 ## Knowledge Base (read in order)
-1. `doc/00-architecture-overview.md`
-2. `doc/02-inputs-and-model-paths.md`
-3. `doc/03-imports-and-henshin-modules.md`
-4. `doc/04-objectives-and-fitness.md`
-5. `doc/05-search-and-experiment.md`
-6. `doc/06-results-and-output-layout.md`
-7. `doc/momot/10-ocl-expressions.md` (critical for writing objectives)
-8. `doc/momot/11-parameter-injection.md`
-9. `doc/momot/12-java-helper-integration.md` (only if a Java helper is planned)
-10. `doc/momot/13-generation-checklist.md` (run before validation)
+1. `docs/00-architecture-overview.md`
+2. `docs/02-inputs-and-model-paths.md`
+3. `docs/03-imports-and-henshin-modules.md`
+4. `docs/04-objectives-and-fitness.md`
+5. `docs/05-search-and-experiment.md`
+6. `docs/06-results-and-output-layout.md`
+7. `docs/momot/10-ocl-expressions.md` (critical for writing objectives)
+8. `docs/momot/11-parameter-injection.md`
+9. `docs/momot/12-java-helper-integration.md` (only if a Java helper is planned)
+10. `docs/momot/13-generation-checklist.md` (run before validation)
 
 ## Generation Algorithm
 1. Extract Henshin module info: Module name, rule names, parameters, helpers.
 2. Extract objectives to optimize from the natural-language description.
-3. Map objectives to OCL expressions (using `doc/momot/10-ocl-expressions.md`).
+3. Map objectives to OCL expressions (using `docs/momot/10-ocl-expressions.md`).
 4. Select `solutionLength` based on the heuristic (typical: 10 for balancing, 20 for scheduling, 30 for trees, 50 for complex graphs).
-5. Compose the script matching the standard skeletal layout (see `doc/momot/13-generation-checklist.md`).
-6. Run the 25-point checklist from `doc/momot/13-generation-checklist.md`.
+5. Compose the script matching the standard skeletal layout (see `docs/momot/13-generation-checklist.md`).
+6. Run the 25-point checklist from `docs/momot/13-generation-checklist.md`.
 7. Write the file to `src/<packagePath>/<ClassName>Search.momot`.
 
 ## Algorithm Selection Heuristic
@@ -49,7 +49,7 @@ node tools/momot-validator/validate.mjs --compile <file.momot> --project-root <j
 All must exit 0 before advancing.
 
 ## Repair Protocol
-On validation failure, map to the corresponding entry in `doc/momot/13-generation-checklist.md` or `doc/momot/README.md`. Repair and retry up to 3 times before escalating.
+On validation failure, map to the corresponding entry in `docs/momot/13-generation-checklist.md` or `docs/momot/README.md`. Repair and retry up to 3 times before escalating.
 
 ## HITL Gate
 Present the generated script to the user with a summary of:

@@ -1,160 +1,114 @@
-# MOMoT — Headless REST Runner & Agent Tooling
+# MOMoT MCP — Headless REST Runner & Model Context Protocol Platform
 
-[![Project Page](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://jku-win-se.github.io/MOMoT2/)
+[![Project Page](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://jku-win-se.github.io/MOMoT-MCP/)
+[![License](https://img.shields.io/badge/license-MIT%2FEPL-green.svg)](#)
 
-MOMoT combines model transformation (EMF/Henshin) with search-based optimization to solve complex model-driven engineering tasks.
+MOMoT-MCP combines model transformation (EMF/Henshin) with search-based optimization to solve complex model-driven engineering tasks. This repository hosts the container-first, headless distribution of MOMoT, featuring a robust **Model Context Protocol (MCP)** server and automated agent pipelines designed specifically for LLM-driven optimization and synthesis.
 
-**Project page:** https://jku-win-se.github.io/MOMoT2/
-
----
-
-## Repository branches
-
-| Branch | Purpose | Get started |
-| --- | --- | --- |
-| **`standalone`** (this branch) | **Headless REST** runner, Docker, MCP server, E2E test suite | [Quick start](#quick-start) · [AGENTS.md](AGENTS.md) |
-| **`main`** | Full **Eclipse IDE** distribution, all case-study examples, [update site](https://jku-win-se.github.io/MOMoT2/eclipse/updates/latest/develop/) | [Clone `main`](https://github.com/jku-win-se/MOMoT2/tree/main) · [README on main](https://github.com/jku-win-se/MOMoT2/blob/main/README.md) |
-
-See the [branches guide](https://jku-win-se.github.io/MOMoT2/branches.html) on the project site for a detailed comparison.
+**Project Documentation & Guides:** https://jku-win-se.github.io/MOMoT-MCP/
 
 ---
 
-## `standalone` — What this branch is
+## Key Capabilities
 
-The **`standalone`** branch is a container-first, headless distribution. It omits the full Eclipse example wizards and IDE packaging in favor of:
+- **Docker REST Server:** Fast zip-in / zip-out job execution (`POST /run`) to compile and solve scripts without any Eclipse IDE dependencies.
+- **Model Context Protocol (MCP) Server:** Stdio JSON-RPC bridge that allows LLM agents (like Cursor, Claude, etc.) to perform artifact generation, run local validations, and launch Docker-backed optimization jobs.
+- **Smart Agent Coordinator System:** Autonomous human-in-the-loop (HITL) workflow that enables agents to generate metamodels, create instance profiles, write Henshin rules, compose MOMoT scripts, and repair compile/logic errors iteratively.
+- **Local CLI Validators:** Lightweight Node-based wrappers for Henshin, MOMoT, Ecore, and XMI that validate files instantly without starting Docker.
+- **E2E Test & Benchmark Suite:** Five verified multi-objective benchmarks (T01–T05) with expected Pareto fronts for regression and verification checks.
 
-- **Docker REST server** — zip-in / zip-out job execution (`POST /run`)
-- **MCP server** (`mcp/`) — stdio JSON-RPC bridge for LLM agents
-- **E2E test suite** (`test-suite/`) — five verified benchmarks (T01–T05) including new Vehicle Routing
-- **Class-Responsibility Assignment (CRA) Bootstrap Benchmark** (`benchmark/`) — Academically rigorous re-synthesis and evolution benchmark with full [REPRODUCTION guide](benchmark/REPRODUCTION.md)
-- **CLI validators** (`tools/`) — local validation tools for Henshin, MOMoT, Ecore, and XMI
-- **Minimal stack example** (`stack-example-minimal/`) — deterministic smoke test
-- **Agent playbook** — [AGENTS.md](AGENTS.md) documents the full agent workflow and Smart Agent system
-
-Use **`main`** if you need the Eclipse update site, UI plugins, or the full set of wizard-based case studies.
+> ℹ️ **Looking for the Eclipse IDE plugin?** If you need the full Eclipse update site, UI plugins, or the full set of graphical wizards, please visit the parent repository at [jku-win-se/MOMoT2](https://github.com/jku-win-se/MOMoT2).
 
 ---
 
-## Quick start
+## Quick Start
 
-### Build and run the REST server
+### 1. Run the Headless REST Runner (Docker)
 
 ```bash
-git clone -b standalone https://github.com/jku-win-se/MOMoT2.git
-cd MOMoT2
+git clone https://github.com/jku-win-se/MOMoT-MCP.git
+cd MOMoT-MCP
 docker build -t momot-headless -f Dockerfile.headless .
 docker run --rm -p 8080:8080 momot-headless
 ```
 
-Health check:
+- **Health Check:** `http://localhost:8080/health`
+- **Interactive API Docs (Swagger):** `http://localhost:8080/docs`
 
-```text
-http://localhost:8080/health
-```
+### 2. Run the Smoke Test
 
-Swagger / OpenAPI:
+Verify the setup locally using our automated test script:
 
-```text
-http://localhost:8080/docs
-http://localhost:8080/openapi.json
-```
+- **Linux / macOS:** `./scripts/run-minimal-rest-test.sh`
+- **Windows PowerShell:** `./scripts/run-minimal-rest-test.ps1`
 
-### Smoke test (recommended)
+The script starts the container, posts a deterministic stack-balancing job, and asserts execution completion.
 
-Linux/macOS:
-
-```bash
-./scripts/run-minimal-rest-test.sh
-```
-
-Windows PowerShell:
-
-```powershell
-./scripts/run-minimal-rest-test.ps1
-```
-
-The script builds the image (unless skipped), starts the container, posts a deterministic stack-balancing job, and asserts `exit_code == 0`.
-
-### MCP server
+### 3. Start the MCP Server
 
 ```bash
 cd mcp
 npm install
-node server.js   # stdio JSON-RPC; relays to REST runner over HTTP
+node server.js
 ```
 
-See [mcp/README.md](mcp/README.md) for tool schemas (`generate_artifacts_from_ecore`, `execute_momot_job`, `run_end_to_end`).
+The MCP server listens on stdio (JSON-RPC) and translates LLM agent tool calls into local CLI validations and remote REST container executions.
 
 ---
 
-## Repository structure
+## MCP Tool Surface
+
+MOMoT-MCP exposes 12 highly specialized tools to LLM agents:
+
+| Tool Name | Description |
+|-----------|-------------|
+| `detect_artifacts` | Scans workspace and user prompts, outputting an ordered Generation Plan. |
+| `generate_ecore` | Creates structurally and semantically valid `.ecore` metamodels. |
+| `generate_xmi` | Creates valid initial `.xmi` model instances matching any Ecore metamodel. |
+| `generate_henshin` | Generates valid `.henshin` transformation rules based on any Ecore metamodel. |
+| `generate_momot` | Composes a declarative `.momot` search script wiring rules, models, and objectives. |
+| `generate_java_helper` | Builds custom Java fitness modules for complex, non-OCL metrics. |
+| `validate_ecore` | Semantically and structurally validates `.ecore` metamodels. |
+| `validate_xmi` | Programmatically and semantically validates `.xmi` model instances. |
+| `validate_henshin` | Structural, semantic, and dry-run execution validator for Henshin rules. |
+| `validate_momot` | Structural, semantic, and compiler check validator for MOMoT scripts. |
+| `validate_java_helper` | Verifies packages, structural signatures, and inheritance of custom Java helpers. |
+| `execute_momot_job` | Compiles and executes a complete ZIP payload on the Docker REST runner. |
+
+Refer to [mcp/README.md](mcp/README.md) for full JSON schemas and payload examples.
+
+---
+
+## Directory Layout
 
 | Path | Description |
 | --- | --- |
-| `plugins/` | MOMoT core, MOEA bridge, configuration language, headless runner |
-| `headless/` | Headless runtime modules |
-| `mcp/` | MCP server (Node.js, stdio transport) |
-| `stack-example-minimal/` | Canonical stack load-balancing fixture |
-| `test-suite/` | E2E benchmarks (T01-T05) with expected Pareto fronts |
-| `headless-example/` | REST-ready example job payloads |
-| `tools/henshin-validator/` | CLI validator for `.henshin` rules |
-| `tools/ecore-validator/` | CLI validator for `.ecore` metamodels |
-| `tools/xmi-validator/` | CLI validator for `.xmi` model instances |
-| `doc/` | Architecture docs, wikis, and validation runbooks |
-| `Dockerfile.headless` | Production headless image (recommended) |
-| `Dockerfile` | Alternate REST image build |
+| `mcp/` | Model Context Protocol server (Node.js, stdio) |
+| `docs/` | Comprehensive architectural wikis, playbooks, and runbooks (GitHub Pages) |
+| `tools/` | CLI validators for `.henshin`, `.momot`, `.ecore`, and `.xmi` files |
+| `test-suite/` | E2E benchmarks (T01-T05) with reference Pareto fronts |
+| `stack-example-minimal/` | Canonical stack load-balancing example payload |
+| `plugins/` | Core MOMoT compiler, MOEA bridge, and headless runner modules |
+| `headless/` | Headless runtime wrapper modules |
+| `Dockerfile.headless` | Primary production REST headless Docker image |
 
 ---
 
-## REST API (summary)
+## REST API Summary
 
-| Endpoint | Description |
-| --- | --- |
-| `GET /health` | Readiness check |
-| `POST /run?script=<path.momot>` | Execute job (body = raw `application/zip`) |
+| Endpoint | Method | Input | Output |
+|---|---|---|---|
+| `/health` | `GET` | None | `{ "status": "UP", "health": { "ok": true } }` |
+| `/run?script=<path>` | `POST` | Raw Binary `application/zip` | Job completion zip package |
 
-Important:
-
-1. Request body must be a ZIP containing model files, `.henshin` rules, and the `.momot` script.
-2. The `script` query parameter must exactly match a path inside the uploaded ZIP.
-3. Response is a ZIP with `runner/exit_code.txt`, `runner/runner.log`, and `out/` artifacts.
+1. **Upload format:** Requests to `/run` must send the zip package as the raw binary request body.
+2. **Script parameter:** The `script` query parameter must exactly match the relative path of the `.momot` script inside the uploaded zip.
+3. **Response package:** Returns a zip containing the execution output directory (`out/`), compiler logs (`runner/runner.log`), and exit status (`runner/exit_code.txt`).
 
 ---
 
-## Documentation
+## Authors & Contributors
 
-| Document | Content |
-| --- | --- |
-| [AGENTS.md](AGENTS.md) | Agent playbook — MCP tools, validation tiers, repair loop |
-| [doc/00-architecture-overview.md](doc/00-architecture-overview.md) | REST, MCP, Docker topology |
-| [doc/08-validation-and-runbook.md](doc/08-validation-and-runbook.md) | Full validation runbook |
-| [doc/09-minimal-test-case.md](doc/09-minimal-test-case.md) | Stack example walkthrough |
-| [test-suite/README.md](test-suite/README.md) | Benchmark suite guide |
-| [mcp/README.md](mcp/README.md) | MCP tool reference |
-| [tools/henshin-validator/README.md](tools/henshin-validator/README.md) | CLI validator usage |
+MOMoT is authored by Martin Fleck ([@martin-fleck](https://github.com/martin-fleck)), Javier Troya ([@javitroya](https://github.com/javitroya)), and Manuel Wimmer ([@manuelWimmer](https://github.com/manuelWimmer)).
 
----
-
-## `main` — Eclipse IDE distribution
-
-The **`main`** branch provides the full Eclipse product:
-
-- Install via update site: `https://jku-win-se.github.io/MOMoT2/eclipse/updates/latest/develop/`
-- All case-study examples with IDE wizards (stack, CRA, modularization, TSE, …)
-- GitHub Pages site with case-study documentation
-
-```bash
-git clone -b main https://github.com/jku-win-se/MOMoT2.git
-cd MOMoT2
-mvn clean install
-```
-
-See [README on main](https://github.com/jku-win-se/MOMoT2/blob/main/README.md) and [MIGRATION.md](https://github.com/jku-win-se/MOMoT2/blob/main/MIGRATION.md).
-
----
-
-## Authors
-
-MOMoT was developed by Martin Fleck ([@martin-fleck](https://github.com/martin-fleck)), Javier Troya ([@javitroya](https://github.com/javitroya)), and Manuel Wimmer ([@manuelWimmer](https://github.com/manuelWimmer)).
-
-The MCP server, Smart Agent coordinator system, Ecore and XMI CLI validators, and agent integration on the **standalone** branch were developed by MohammadHadi Dehghani ([@hadiDHD](https://github.com/hadiDHD)).
+The headless REST runner, MCP server, automated local validators, E2E benchmark harness, and the agent coordinator system on the **MOMoT-MCP** platform were developed by MohammadHadi Dehghani ([@hadiDHD](https://github.com/hadiDHD)).

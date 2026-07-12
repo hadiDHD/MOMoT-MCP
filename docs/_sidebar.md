@@ -1,0 +1,56 @@
+- [Home](/)
+- **Architecture & Overview**
+  - [Architecture Overview](00-architecture-overview.md)
+  - [Package & Entry Points](01-package-and-entrypoints.md)
+  - [Inputs & Model Paths](02-inputs-and-model-paths.md)
+  - [Imports & Henshin Modules](03-imports-and-henshin-modules.md)
+  - [Objectives & Fitness](04-objectives-and-fitness.md)
+  - [Search & Experimentation](05-search-and-experiment.md)
+  - [Results & Output Layout](06-results-and-output-layout.md)
+  - [Finalization & Logging](07-finalization-and-logging.md)
+  - [Validation Runbook](08-validation-and-runbook.md)
+  - [Minimal Stack Case Study](09-minimal-test-case.md)
+
+- **Ecore Metamodeling**
+  - [Ecore Overview](ecore/00-overview.md)
+  - [Class Patterns](ecore/01-class-patterns.md)
+  - [Attribute Types](ecore/02-attribute-types.md)
+  - [Reference Patterns](ecore/03-reference-patterns.md)
+  - [Validation Checklist](ecore/04-validation-checklist.md)
+  - [Generation Templates](ecore/05-generation-templates.md)
+  - [Debugging Runbook](ecore/06-debugging-runbook.md)
+
+- **Henshin Transform Rules**
+  - [Henshin Overview](henshin/00-overview.md)
+  - [Rule Anatomy](henshin/01-rule-anatomy.md)
+  - [Rule Parameters](henshin/02-parameters.md)
+  - [Composite Units](henshin/03-composite-units.md)
+  - [NAC / PAC Conditions](henshin/04-conditions-nac-pac.md)
+  - [Metamodel Binding](henshin/05-metamodel-binding.md)
+  - [MOMoT Integration](henshin/06-momot-integration.md)
+  - [Common Design Patterns](henshin/07-common-patterns.md)
+  - [Testing Rules](henshin/08-testing-strategy.md)
+  - [Debugging Runbook](henshin/09-debugging-runbook.md)
+
+- **MOMoT Scripts**
+  - [MOMoT Overview](momot/README.md)
+  - [OCL Objective Expressions](momot/10-ocl-expressions.md)
+  - [Parameter Value Injection](momot/11-parameter-injection.md)
+  - [Java Helper Integration](momot/12-java-helper-integration.md)
+  - [Pre-Flight Checklist](momot/13-generation-checklist.md)
+
+- **XMI Instance Generation**
+  - [XMI Overview](xmi/00-overview.md)
+  - [Instance Patterns](xmi/01-instance-patterns.md)
+  - [Validation Checklist](xmi/02-validation-checklist.md)
+  - [Generation from Ecore](xmi/03-generation-from-ecore.md)
+  - [Debugging Runbook](xmi/04-debugging-runbook.md)
+
+- **Java Helpers**
+  - [Java Helpers Overview](java-helpers/00-overview.md)
+  - [Custom Fitness Functions](java-helpers/01-custom-fitness.md)
+  - [Custom Genetic Operators](java-helpers/02-custom-operators.md)
+  - [OCL Alternatives](java-helpers/03-ocl-alternative.md)
+  - [Validation Checklist](java-helpers/04-validation-checklist.md)
+  - [Implementation Templates](java-helpers/05-templates.md)
+  - [Debugging Runbook](java-helpers/06-debugging-runbook.md)

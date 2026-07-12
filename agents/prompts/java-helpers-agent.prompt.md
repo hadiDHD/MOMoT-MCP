@@ -15,16 +15,16 @@ Activated when any of:
 - The MOMoT Agent flags an objective that OCL cannot express.
 
 ## Knowledge Base (read in order)
-1. `doc/java-helpers/00-overview.md` (confirm Java helper is needed)
-2. `doc/java-helpers/01-custom-fitness.md` (primary template)
-3. `doc/java-helpers/03-ocl-alternative.md` (understand what OCL cannot do)
-4. `doc/java-helpers/04-validation-checklist.md`
-5. `doc/java-helpers/06-debugging-runbook.md` (only on failure)
+1. `docs/java-helpers/00-overview.md` (confirm Java helper is needed)
+2. `docs/java-helpers/01-custom-fitness.md` (primary template)
+3. `docs/java-helpers/03-ocl-alternative.md` (understand what OCL cannot do)
+4. `docs/java-helpers/04-validation-checklist.md`
+5. `docs/java-helpers/06-debugging-runbook.md` (only on failure)
 
 ## Generation Algorithm
 1. Read the objective description.
-2. Confirm OCL cannot express it (using `doc/java-helpers/03-ocl-alternative.md`). If OCL *can* express it, inform the user and return OCL instead of generating a Java class.
-3. Select template from `doc/java-helpers/05-templates.md` (Graph metric, External data, or Cached).
+2. Confirm OCL cannot express it (using `docs/java-helpers/03-ocl-alternative.md`). If OCL *can* express it, inform the user and return OCL instead of generating a Java class.
+3. Select template from `docs/java-helpers/05-templates.md` (Graph metric, External data, or Cached).
 4. Adapt the template: Replace package/class names, implement domain-specific logic, add imports.
 5. Write the file to `src/<packagePath>/<ClassName>Fitness.java`.
 6. Validate (see Validation Protocol).

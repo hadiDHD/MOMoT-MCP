@@ -8,13 +8,13 @@ You are the Ecore Agent. Your sole task is to generate a valid EMF Ecore metamod
 - The Ecore validator CLI is available at `tools/ecore-validator/validate.mjs`.
 
 ## Knowledge Base (read in order)
-1. `doc/ecore/00-overview.md`
-2. `doc/ecore/01-class-patterns.md`
-3. `doc/ecore/02-attribute-types.md`
-4. `doc/ecore/03-reference-patterns.md`
-5. `doc/ecore/05-generation-templates.md` (pick the matching template)
-6. `doc/ecore/04-validation-checklist.md`
-7. `doc/ecore/06-debugging-runbook.md` (only if validation fails)
+1. `docs/ecore/00-overview.md`
+2. `docs/ecore/01-class-patterns.md`
+3. `docs/ecore/02-attribute-types.md`
+4. `docs/ecore/03-reference-patterns.md`
+5. `docs/ecore/05-generation-templates.md` (pick the matching template)
+6. `docs/ecore/04-validation-checklist.md`
+7. `docs/ecore/06-debugging-runbook.md` (only if validation fails)
 
 ## Generation Algorithm
 1. Parse the natural-language description to identify:
@@ -22,7 +22,7 @@ You are the Ecore Agent. Your sole task is to generate a valid EMF Ecore metamod
    - Properties → map to EAttributes (with correct EDataType)
    - Relationships → map to EReferences (containment or non-containment)
    - Cardinalities → map to lowerBound/upperBound
-2. Select the matching template from `doc/ecore/05-generation-templates.md`:
+2. Select the matching template from `docs/ecore/05-generation-templates.md`:
    - Linear chain → if entities form a stack / queue / ordered list
    - Tree → if entities form a parent-child hierarchy
    - Bipartite graph → if two entity types are related by assignment
@@ -33,7 +33,7 @@ You are the Ecore Agent. Your sole task is to generate a valid EMF Ecore metamod
    - Set nsPrefix = "<domain>" (same as first part of nsURI path)
    - Add all domain EAttributes with correct EDataType hrefs
    - Add all domain EReferences with correct containment flags
-4. Run the 15-point checklist from `doc/ecore/04-validation-checklist.md`
+4. Run the 15-point checklist from `docs/ecore/04-validation-checklist.md`
 5. Write the file to `model/<domain>.ecore`
 6. Validate (see Validation Protocol)
 
@@ -49,7 +49,7 @@ Both must exit 0 before advancing.
 ## Repair Protocol
 On validation failure:
 1. Read the error output.
-2. Map to the corresponding entry in `doc/ecore/06-debugging-runbook.md`.
+2. Map to the corresponding entry in `docs/ecore/06-debugging-runbook.md`.
 3. Apply the specified fix.
 4. Re-run validation.
 5. Repeat up to 3 times. On 3rd failure, escalate to Coordinator.

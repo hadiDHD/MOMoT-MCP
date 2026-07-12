@@ -37,7 +37,7 @@ Custom Java classes are required in the following scenarios:
 No separate JAR is needed to package your Java helpers:
 - Custom Java source files live under the `src/` directory in package-matching folder structures (e.g., `src/mypackage/MyFitness.java`).
 - The MOMoT REST runner automatically compiles these classes along with the generated `.momot` search scripts.
-- To use them, FQNs are imported and initialized inside the `.momot` script (see [doc/momot/12-java-helper-integration.md](../momot/12-java-helper-integration.md)).
+- To use them, FQNs are imported and initialized inside the `.momot` script (see [docs/momot/12-java-helper-integration.md](../momot/12-java-helper-integration.md)).
 
 ## Verification Checklist
 

@@ -22,7 +22,7 @@ When helping in this workspace:
 A dedicated Henshin expert agent is available for writing, validating, and testing `.henshin` transformation files.
 
 ### Knowledge Base
-Full Henshin reference documentation is in `doc/henshin/` (files `00`–`09` + examples).
+Full Henshin reference documentation is in `docs/henshin/` (files `00`–`09` + examples).
 See imported content at the bottom of this file for details.
 
 ### CLI Validators (no Docker needed)
@@ -179,8 +179,8 @@ With REST server running (Note: The default port in this workspace is typically 
 The following files are imported to provide full, authoritative details.
 
 @./mcp/README.md
-@./doc/README.md
-@./doc/08-validation-and-runbook.md
-@./doc/09-minimal-test-case.md
-@./doc/henshin/README.md
+@./docs/README.md
+@./docs/08-validation-and-runbook.md
+@./docs/09-minimal-test-case.md
+@./docs/henshin/README.md
 @./tools/henshin-validator/README.md

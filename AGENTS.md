@@ -33,7 +33,7 @@ test-suite/                   E2E benchmark suite — 5 verified test cases
   T04-task-scheduling/
   T05-vehicle-routing/
   RESULTS.md                  Latest pass/fail status for all tiers
-doc/
+docs/
   00-architecture-overview.md Full architecture with diagrams
   henshin/                    10-chapter Henshin knowledge base (00–09)
 tools/
@@ -177,20 +177,20 @@ If Docker is unavailable, skip steps 4–5 and document as SKIP.
 ## Writing `.momot` Scripts
 
 For detailed instructions, syntax guidelines, parameter value classes, and the 25-point pre-flight checklist for MOMoT scripts, refer directly to the **MOMoT Wiki and supplements**:
-- **MOMoT Wiki Index**: [doc/momot/README.md](doc/momot/README.md)
-- **10. Worked OCL Objective Examples**: [doc/momot/10-ocl-expressions.md](doc/momot/10-ocl-expressions.md)
-- **11. Rule Parameter Value Injection**: [doc/momot/11-parameter-injection.md](doc/momot/11-parameter-injection.md)
-- **12. Java Helper Integration**: [doc/momot/12-java-helper-integration.md](doc/momot/12-java-helper-integration.md)
-- **13. Pre-Flight Checklist**: [doc/momot/13-generation-checklist.md](doc/momot/13-generation-checklist.md)
+- **MOMoT Wiki Index**: [docs/momot/README.md](docs/momot/README.md)
+- **10. Worked OCL Objective Examples**: [docs/momot/10-ocl-expressions.md](docs/momot/10-ocl-expressions.md)
+- **11. Rule Parameter Value Injection**: [docs/momot/11-parameter-injection.md](docs/momot/11-parameter-injection.md)
+- **12. Java Helper Integration**: [docs/momot/12-java-helper-integration.md](docs/momot/12-java-helper-integration.md)
+- **13. Pre-Flight Checklist**: [docs/momot/13-generation-checklist.md](docs/momot/13-generation-checklist.md)
 
 ---
 
 ## Writing Henshin Rules
 
 For detailed instructions, rule anatomy, binding to metamodels, common patterns, and debugging runbooks for Henshin transformations, refer directly to the **Henshin Expert Wiki**:
-- **Henshin Wiki Index**: [doc/henshin/README.md](doc/henshin/README.md)
-- **Common Henshin Patterns**: [doc/henshin/07-common-patterns.md](doc/henshin/07-common-patterns.md)
-- **Henshin Debugging Runbook**: [doc/henshin/09-debugging-runbook.md](doc/henshin/09-debugging-runbook.md)
+- **Henshin Wiki Index**: [docs/henshin/README.md](docs/henshin/README.md)
+- **Common Henshin Patterns**: [docs/henshin/07-common-patterns.md](docs/henshin/07-common-patterns.md)
+- **Henshin Debugging Runbook**: [docs/henshin/09-debugging-runbook.md](docs/henshin/09-debugging-runbook.md)
 - **Sub-Agent Standalone Wiki**: [henshin-agent/wiki/](henshin-agent/wiki/)
 
 ---
@@ -248,7 +248,7 @@ To re-run the full verification + repair loop, apply the prompt:
 | `exitCode="1"`, log shows "script not found" | `scriptPath` doesn't match a ZIP entry | Check forward slashes, exact path |
 | `exitCode="1"`, log shows model loading error | Model `.xmi` root type or nsURI mismatch | Check `xsi:schemaLocation` in the XMI |
 | `exitCode="1"`, compile error in log | Invalid `.momot` syntax or unresolvable import | Check import names; remove non-classpath Java class imports |
-| `exitCode="1"`, log shows Henshin engine error | Rule parameters mismatched or NAC cycle | Run Tier 1 CLI validator; consult `doc/henshin/09-debugging-runbook.md` |
+| `exitCode="1"`, log shows Henshin engine error | Rule parameters mismatched or NAC cycle | Run Tier 1 CLI validator; consult `docs/henshin/09-debugging-runbook.md` |
 | Pareto front all zeros | Objective is `{ 0.0 }` placeholder | Replace with OCL string expression |
 | `RandomStringValue` not found | Deprecated class | Replace with `RandomListValue(#["v1","v2"])` |
 
@@ -256,9 +256,9 @@ To re-run the full verification + repair loop, apply the prompt:
 
 ## Commit and Branching Convention
 
-- Active development branch: `standalone`
-- Push target: `origin/standalone`
-- Do **not** force-push `master` or `main`.
+- Active development branch: `main`
+- Push target: `origin/main`
+- Do **not** force-push the main branch.
 - Commit messages follow Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:`, `test:`.
 
 ---
@@ -267,11 +267,11 @@ To re-run the full verification + repair loop, apply the prompt:
 
 | Resource | Path |
 |---|---|
-| Architecture overview | `doc/00-architecture-overview.md` |
+| Architecture overview | `docs/00-architecture-overview.md` |
 | MCP tool schema | `mcp/README.md` |
-| Henshin knowledge base index | `doc/henshin/README.md` |
-| Debugging runbook | `doc/henshin/09-debugging-runbook.md` |
-| Common Henshin patterns | `doc/henshin/07-common-patterns.md` |
+| Henshin knowledge base index | `docs/henshin/README.md` |
+| Debugging runbook | `docs/henshin/09-debugging-runbook.md` |
+| Common Henshin patterns | `docs/henshin/07-common-patterns.md` |
 | Canonical working example | `stack-example-minimal/` |
 | E2E test suite | `test-suite/` |
 | E2E results | `test-suite/RESULTS.md` |
@@ -315,7 +315,7 @@ To bypass HITL checks in CI/CD pipelines, set the environment variable `HITL_ENA
 Any Henshin generation request from the MOMoT coordinator MUST invoke the Henshin sub-agent prompt.
 
 - **Trigger:** When `.henshin` generation or repair is needed.
-- **Workflow:** Read knowledge bases (`henshin-agent/wiki/` + `doc/henshin/`), map requirements to LHS/RHS/NACs, generate unique XMI IDs, and run 3-tier validation (`validate-structure`, `validate-semantic`, and `apply`).
+- **Workflow:** Read knowledge bases (`henshin-agent/wiki/` + `docs/henshin/`), map requirements to LHS/RHS/NACs, generate unique XMI IDs, and run 3-tier validation (`validate-structure`, `validate-semantic`, and `apply`).
 - **Input Contract:**
   - `ecorePath` / `ecoreContent`
   - `modelPath` / `modelContent` (XMI instance)

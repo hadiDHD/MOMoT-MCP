@@ -120,7 +120,7 @@ test is not fully green, fix it before reporting completion.
 - Check that `xmlns:xsi` is declared on the root `<henshin:Module>` element.
 - Check that `<imports href="<nsURI>#/"/>` matches the `.ecore` nsURI exactly.
 - Check that every `<type href="..."/>` path ends in a valid EClass or EStructuralFeature.
-- Consult `doc/henshin/09-debugging-runbook.md` for the full triage checklist.
+- Consult `docs/henshin/09-debugging-runbook.md` for the full triage checklist.
 
 ### Semantic validation failures
 - Ensure all node `<type>` hrefs resolve: `<nsURI>#//<ClassName>` for classes, `<nsURI>#//<Class>/<feature>` for references.
@@ -156,9 +156,9 @@ test is not fully green, fix it before reporting completion.
 
 | Resource | Path |
 |----------|------|
-| Henshin knowledge base | `doc/henshin/README.md` (chapters 00–09) |
-| Debugging runbook | `doc/henshin/09-debugging-runbook.md` |
-| Common XMI patterns | `doc/henshin/07-common-patterns.md` |
+| Henshin knowledge base | `docs/henshin/README.md` (chapters 00–09) |
+| Debugging runbook | `docs/henshin/09-debugging-runbook.md` |
+| Common XMI patterns | `docs/henshin/07-common-patterns.md` |
 | Canonical working example | `test-suite/T01-stack-balancing/model/stack.henshin` |
 | Canonical working .momot | `test-suite/T01-stack-balancing/src/.../StackSearchExample.momot` |
 | MCP tooling docs | `mcp/README.md` |

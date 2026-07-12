@@ -25,4 +25,4 @@ Welcome to the Java-Helpers Wiki. This dense, agent-optimized knowledge base cov
 
 ## Integration with MOMoT Scripts
 
-For step-by-step instructions on importing and referencing your compiled Java helper inside your declarative `.momot` scripts, see [doc/momot/12-java-helper-integration.md](../momot/12-java-helper-integration.md).
+For step-by-step instructions on importing and referencing your compiled Java helper inside your declarative `.momot` scripts, see [docs/momot/12-java-helper-integration.md](../momot/12-java-helper-integration.md).

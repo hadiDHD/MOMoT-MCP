@@ -10,7 +10,7 @@ This prompt drives the iterative development of Henshin rules using a two-tier s
     node tools/henshin-validator/validate.mjs --validate-semantic <file.henshin> --metamodel <file.ecore>
     ```
 3.  **Triage**:
-    - If errors: consult \`doc/henshin/09-debugging-runbook.md\`, fix the rule, and go back to step 1.
+    - If errors: consult \`docs/henshin/09-debugging-runbook.md\`, fix the rule, and go back to step 1.
     - If success: proceed to step 4.
 4.  **Apply Test**:
     ```bash

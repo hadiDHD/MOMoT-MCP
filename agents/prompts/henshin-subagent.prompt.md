@@ -15,12 +15,12 @@ You are the Henshin Sub-Agent. Your sole task is to generate a valid `.henshin` 
 
 ## Knowledge Base (read ALL before generating)
 1. `henshin-agent/wiki/` — all chapters (start with the index)
-2. `doc/henshin/00-overview.md`
-3. `doc/henshin/01-rule-anatomy.md`
-4. `doc/henshin/05-metamodel-binding.md`
-5. `doc/henshin/06-momot-integration.md`
-6. `doc/henshin/07-common-patterns.md`
-7. `doc/henshin/09-debugging-runbook.md`
+2. `docs/henshin/00-overview.md`
+3. `docs/henshin/01-rule-anatomy.md`
+4. `docs/henshin/05-metamodel-binding.md`
+5. `docs/henshin/06-momot-integration.md`
+6. `docs/henshin/07-common-patterns.md`
+7. `docs/henshin/09-debugging-runbook.md`
 
 ## Generation Algorithm
 1. Read the Ecore metamodel — identify all EClasses and EReferences.
@@ -41,7 +41,7 @@ Run in order; stop on first failure and enter repair loop:
 3. `node henshin-agent/bin/validate.mjs --apply <file> --metamodel <ecore> --model <xmi> --rule <primaryRule>`
 
 ## Repair Protocol
-Map validator errors to fixes using `doc/henshin/09-debugging-runbook.md` and `henshin-agent/wiki/` debugging chapters. Max 3 retries.
+Map validator errors to fixes using `docs/henshin/09-debugging-runbook.md` and `henshin-agent/wiki/` debugging chapters. Max 3 retries.
 
 ## HITL Gate
 Present the generated `.henshin` to the user with:

@@ -30,7 +30,7 @@
       "modifications": [
         {
           "version": 1,
-          "action": "Initial ingestion of relational JSON dataset from MONOLITH_DATASET.md",
+          "action": "Initial ingestion of natural language specification from gate2_input_spec.md",
           "result": "SUCCESS",
           "details": "Passed local CLI validation (xmi-validator --validate-semantic --ecore cra.ecore) on the first attempt with all 9 features initially unassigned and correct methodCall/dataAccess cross-references."
         }

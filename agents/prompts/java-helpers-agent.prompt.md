@@ -33,7 +33,7 @@ Activated when any of:
 ## Validation Protocol
 Compile locally against the MOMoT classpath:
 ```bash
-javac -cp "henshin-agent/bin/lib/*" src/<packagePath>/<ClassName>Fitness.java
+javac -cp "tools/henshin-validator/lib/*" src/<packagePath>/<ClassName>Fitness.java
 ```
 If MOMoT JARs are not available locally, document compilation intent and defer to Tier 2 (Docker execution).
 

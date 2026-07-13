@@ -191,7 +191,6 @@ For detailed instructions, rule anatomy, binding to metamodels, common patterns,
 - **Henshin Wiki Index**: [docs/henshin/README.md](docs/henshin/README.md)
 - **Common Henshin Patterns**: [docs/henshin/07-common-patterns.md](docs/henshin/07-common-patterns.md)
 - **Henshin Debugging Runbook**: [docs/henshin/09-debugging-runbook.md](docs/henshin/09-debugging-runbook.md)
-- **Sub-Agent Standalone Wiki**: [henshin-agent/wiki/](henshin-agent/wiki/)
 
 ---
 
@@ -315,7 +314,7 @@ To bypass HITL checks in CI/CD pipelines, set the environment variable `HITL_ENA
 Any Henshin generation request from the MOMoT coordinator MUST invoke the Henshin sub-agent prompt.
 
 - **Trigger:** When `.henshin` generation or repair is needed.
-- **Workflow:** Read knowledge bases (`henshin-agent/wiki/` + `docs/henshin/`), map requirements to LHS/RHS/NACs, generate unique XMI IDs, and run 3-tier validation (`validate-structure`, `validate-semantic`, and `apply`).
+- **Workflow:** Read knowledge bases (`docs/henshin/`), map requirements to LHS/RHS/NACs, generate unique XMI IDs, and run 3-tier validation (`validate-structure`, `validate-semantic`, and `apply`).
 - **Input Contract:**
   - `ecorePath` / `ecoreContent`
   - `modelPath` / `modelContent` (XMI instance)

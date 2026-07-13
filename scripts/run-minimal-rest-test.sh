@@ -13,10 +13,10 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "$REPO_ROOT"
 
 for required in \
-  "stack-example-minimal/src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot" \
-  "stack-example-minimal/model/stack.ecore" \
-  "stack-example-minimal/model/stack.henshin" \
-  "stack-example-minimal/model/input/model/model_five_stacks.xmi"; do
+  "headless-example/job-minimal/src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot" \
+  "headless-example/job-minimal/model/stack.ecore" \
+  "headless-example/job-minimal/model/stack.henshin" \
+  "headless-example/job-minimal/model/input/model/model_five_stacks.xmi"; do
   if [[ ! -f "$required" ]]; then
     echo "Required file is missing: $required" >&2
     exit 1

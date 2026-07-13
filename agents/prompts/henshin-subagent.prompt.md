@@ -11,10 +11,10 @@ You are the Henshin Sub-Agent. Your sole task is to generate a valid `.henshin` 
 ## Preconditions
 - [ ] A valid `.ecore` file is available (from Ecore Agent or user-provided).
 - [ ] A valid `.xmi` model instance is available (from XMI Agent or user-provided).
-- [ ] The Henshin validator is compiled: `henshin-agent/bin/lib/*.jar` exists.
+- [ ] The Henshin validator is compiled: `tools/henshin-validator/lib/*.jar` exists.
 
 ## Knowledge Base (read ALL before generating)
-1. `henshin-agent/wiki/` — all chapters (start with the index)
+1. `docs/henshin/README.md` — all chapters (start with the index)
 2. `docs/henshin/00-overview.md`
 3. `docs/henshin/01-rule-anatomy.md`
 4. `docs/henshin/05-metamodel-binding.md`
@@ -36,12 +36,12 @@ You are the Henshin Sub-Agent. Your sole task is to generate a valid `.henshin` 
 
 ## Validation Protocol
 Run in order; stop on first failure and enter repair loop:
-1. `node henshin-agent/bin/validate.mjs --validate-structure <file>`
-2. `node henshin-agent/bin/validate.mjs --validate-semantic <file> --metamodel <ecore>`
-3. `node henshin-agent/bin/validate.mjs --apply <file> --metamodel <ecore> --model <xmi> --rule <primaryRule>`
+1. `node tools/henshin-validator/validate.mjs --validate-structure <file>`
+2. `node tools/henshin-validator/validate.mjs --validate-semantic <file> --metamodel <ecore>`
+3. `node tools/henshin-validator/validate.mjs --apply <file> --metamodel <ecore> --model <xmi> --rule <primaryRule>`
 
 ## Repair Protocol
-Map validator errors to fixes using `docs/henshin/09-debugging-runbook.md` and `henshin-agent/wiki/` debugging chapters. Max 3 retries.
+Map validator errors to fixes using `docs/henshin/09-debugging-runbook.md` debugging chapters. Max 3 retries.
 
 ## HITL Gate
 Present the generated `.henshin` to the user with:

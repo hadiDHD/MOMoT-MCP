@@ -5,7 +5,7 @@ import { executeMomotJob } from './lib.js';
 async function run() {
   const mcpDir = process.cwd();
   const repoRoot = path.join(mcpDir, '..');
-  const baseDir = path.join(repoRoot, 'stack-example-minimal');
+  const baseDir = path.join(repoRoot, 'headless-example/job-minimal');
   
   const files = {
     'model/stack.ecore': fs.readFileSync(path.join(baseDir, 'model/stack.ecore')).toString('base64'),

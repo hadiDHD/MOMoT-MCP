@@ -371,10 +371,8 @@ export async function validateHenshin({ henshinPath, mode = 'structure', metamod
 export async function buildKnownGoodStackFixture() {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const scriptPath = 'src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot';
-  const headlessRoot = path.join(repoRoot, 'headless-example', 'job-minimal');
-  const useHeadlessFixture = fs.existsSync(path.join(headlessRoot, scriptPath));
-  const fixtureRoot = useHeadlessFixture ? headlessRoot : path.join(repoRoot, 'stack-example-minimal');
-  const modelRoot = useHeadlessFixture ? path.join(fixtureRoot, 'model') : path.join(fixtureRoot, 'model');
+  const fixtureRoot = path.join(repoRoot, 'headless-example', 'job-minimal');
+  const modelRoot = path.join(fixtureRoot, 'model');
   const scriptRoot = fixtureRoot;
   const files = {
     'model/stack.ecore': fs.readFileSync(path.join(modelRoot, 'stack.ecore')).toString('base64'),

@@ -24,8 +24,6 @@ mcp/                          MCP server (Node.js, stdio transport)
   server.js                   Tool definitions
   lib.js                      Core logic: generation, zip, REST, fixtures
   README.md                   Tool schema reference
-headless-example/             REST-ready job payloads (zip-in / zip-out examples)
-stack-example-minimal/        Canonical working example (stack load balancing)
 test-suite/                   E2E benchmark suite — 5 verified test cases
   T01-stack-balancing/
   T02-cra/
@@ -271,7 +269,6 @@ To re-run the full verification + repair loop, apply the prompt:
 | Henshin knowledge base index | `docs/henshin/README.md` |
 | Debugging runbook | `docs/henshin/09-debugging-runbook.md` |
 | Common Henshin patterns | `docs/henshin/07-common-patterns.md` |
-| Canonical working example | `stack-example-minimal/` |
 | E2E test suite | `test-suite/` |
 | E2E results | `test-suite/RESULTS.md` |
 | Verify-and-fix prompt | `.github/prompts/e2e-test-suite-verify-and-fix.prompt.md` |

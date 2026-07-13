@@ -369,21 +369,5 @@ export async function validateHenshin({ henshinPath, mode = 'structure', metamod
 }
 
 export async function buildKnownGoodStackFixture() {
-  const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const scriptPath = 'src/at/ac/tuwien/big/momot/examples/stack/StackSearchExample.momot';
-  const fixtureRoot = path.join(repoRoot, 'headless-example', 'job-minimal');
-  const modelRoot = path.join(fixtureRoot, 'model');
-  const scriptRoot = fixtureRoot;
-  const files = {
-    'model/stack.ecore': fs.readFileSync(path.join(modelRoot, 'stack.ecore')).toString('base64'),
-    'model/stack.henshin': fs.readFileSync(path.join(modelRoot, 'stack.henshin')).toString('base64'),
-    'model/input/model/model_five_stacks.xmi': fs.readFileSync(
-      path.join(modelRoot, 'input', 'model', 'model_five_stacks.xmi')
-    ).toString('base64'),
-    [scriptPath]: fs.readFileSync(
-      path.join(scriptRoot, scriptPath)
-    ).toString('base64')
-  };
-
-  return { scriptPath, filesBase64: files };
+  throw new Error("No pre-existing known-good stack fixture is available in this clean workspace.");
 }

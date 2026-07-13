@@ -14,7 +14,6 @@ When helping in this workspace:
 
 - REST runner executes jobs as zip-in/zip-out using `/run?script=<path>`.
 - Health endpoint is `/health`.
-- Minimal deterministic fixture is in `stack-example-minimal/`.
 - MCP implementation is in `mcp/`.
 
 ## Henshin Agent
@@ -121,9 +120,7 @@ It references the knowledge base and enforces the two-step validation workflow (
   - matching root type expectations,
   - coherent namespace/structure,
   - transformation assumptions reflected in Henshin/script content.
-- For first-time checks, prefer:
-  - `knownGoodFixture=true` with `run_end_to_end`, or
-  - stack example artifacts in `stack-example-minimal/`.
+- For first-time checks, verify that your Ecore, XMI, Henshin, and MOMoT files compile correctly via the validation tools.
 
 ## Output Interpretation Guide
 

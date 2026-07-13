@@ -87,7 +87,6 @@ Refer to [mcp/README.md](mcp/README.md) for full JSON schemas and payload exampl
 | `docs/` | Comprehensive architectural wikis, playbooks, and runbooks (GitHub Pages) |
 | `tools/` | CLI validators for `.henshin`, `.momot`, `.ecore`, and `.xmi` files |
 | `test-suite/` | E2E benchmarks (T01-T05) with reference Pareto fronts |
-| `stack-example-minimal/` | Canonical stack load-balancing example payload |
 | `plugins/` | Core MOMoT compiler, MOEA bridge, and headless runner modules |
 | `headless/` | Headless runtime wrapper modules |
 | `Dockerfile.headless` | Primary production REST headless Docker image |

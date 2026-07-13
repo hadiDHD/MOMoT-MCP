@@ -21,6 +21,16 @@ MOMoT-MCP combines model transformation (EMF/Henshin) with search-based optimiza
 
 ---
 
+## Zero-Dependency Docker-Only Setup
+
+This workbench is designed to run with **zero local dependencies**. You do **not** need to install Java, EMF, or Python on your host machine. 
+
+- **Docker Desktop** is the only runtime dependency.
+- All CLI validators (`henshin-validator`, `momot-validator`, `ecore-validator`, and `xmi-validator`) automatically detect if local Java is missing and seamlessly delegate compile, check, and execution tasks to lightweight Docker containers running `eclipse-temurin:21-jdk` or `maven:3.9-eclipse-temurin-21`.
+- All LLM-driven optimization tasks are executed securely via the containerized headless MOMoT REST runner.
+
+---
+
 ## Quick Start
 
 ### 1. Run the Headless REST Runner (Docker)
@@ -32,19 +42,10 @@ docker build -t momot-headless -f Dockerfile.headless .
 docker run --rm -p 8080:8080 momot-headless
 ```
 
-- **Health Check:** `http://localhost:8080/health`
-- **Interactive API Docs (Swagger):** `http://localhost:8080/docs`
+- **Health Check:** `http://localhost:8080/health` (Returns `{"status": "UP", "health": {"ok": true}}` when ready)
+- **Interactive API Docs (Swagger UI):** `http://localhost:8080/docs`
 
-### 2. Run the Smoke Test
-
-Verify the setup locally using our automated test script:
-
-- **Linux / macOS:** `./scripts/run-minimal-rest-test.sh`
-- **Windows PowerShell:** `./scripts/run-minimal-rest-test.ps1`
-
-The script starts the container, posts a deterministic stack-balancing job, and asserts execution completion.
-
-### 3. Start the MCP Server
+### 2. Start the MCP Server
 
 ```bash
 cd mcp
@@ -52,7 +53,20 @@ npm install
 node server.js
 ```
 
-The MCP server listens on stdio (JSON-RPC) and translates LLM agent tool calls into local CLI validations and remote REST container executions.
+The MCP server connects via stdio JSON-RPC transport and translates LLM agent tool calls into automated local Docker validations and containerized optimization runs.
+
+---
+
+## 🗺️ Cold-Start Bootstrap & Replication Branch (`cold-start-bootstrap`)
+
+For academic replication and to demonstrate the workbench's autonomous capabilities under a cold-start bootstrap scenario (as described in our paper), we provide a dedicated branch with **all pre-existing reference files, models, and benchmarks removed**:
+
+```bash
+# Switch to the clean, data-free cold-start branch
+git checkout cold-start-bootstrap
+```
+
+On this branch, you can instruct any LLM agent (e.g., Claude, Gemini) to start the MCP server, and let the coordinated sub-agents synthesize the entire set of required files (`.ecore`, `.xmi`, `.henshin`, and `.momot`) completely from scratch using only natural language descriptions of the Class-Responsibility Assignment (CRA) domain. All synthesized files will be compiled and executed via Docker.
 
 ---
 

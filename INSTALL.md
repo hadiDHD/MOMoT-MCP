@@ -63,6 +63,19 @@ docker run --rm -i momot-mcp
 
 Requires local Node.js (v20+) and local Java JDK (v17+ or v21+).
 
+### ⚡ Host Setup Hack: Pull Pre-Built Validator Libraries (Saves 5 Minutes!)
+Since a fresh clone starts with empty validator directories (binaries are not in Git), running the validators on your host for the first time normally triggers a 5-minute compilation and download process. 
+
+You can bypass this completely and **instantly extract our pre-compiled libraries from our public registry image** onto your host in under 10 seconds:
+```bash
+docker create --name temp-mcp ghcr.io/hadidhd/momot-mcp:latest
+docker cp temp-mcp:/app/tools/. tools/
+docker rm temp-mcp
+```
+This instantly populates your local host `tools/` folder with all pre-built `.class` and `.jar` libraries, enabling instant local host validations with zero setup!
+
+---
+
 ### 1. Build and Run the REST Headless Runner
 Keep the headless runner running in Docker on port 8080:
 ```bash

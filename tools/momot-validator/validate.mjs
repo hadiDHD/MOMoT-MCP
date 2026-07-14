@@ -1,7 +1,7 @@
 import { spawn, spawnSync } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, copyFileSync, rmSync, writeFileSync, readFileSync, mkdtempSync } from 'fs';
 import { homedir, tmpdir } from 'os';
-import { join, dirname, resolve, isAbsolute } from 'path';
+import { join, dirname, resolve, isAbsolute, relative } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -290,7 +290,7 @@ for f in plugins/at.ac.tuwien.big.moea/lib/*.jar; do
 done
 cp plugins/at.ac.tuwien.big.momot.core/target/at.ac.tuwien.big.momot.core-*.jar tools/momot-validator/lib/
 cp plugins/at.ac.tuwien.big.momot.lang/target/at.ac.tuwien.big.momot.lang-*.jar tools/momot-validator/lib/
-mvn -pl plugins/at.ac.tuwien.big.momot.runner -DskipTests=true -DincludeScope=runtime dependency:copy-dependencies -DoutputDirectory=tools/momot-validator/.deps
+mvn -pl plugins/at.ac.tuwien.big.momot.runner -DskipTests=true -DincludeScope=runtime dependency:copy-dependencies -DoutputDirectory=/src/tools/momot-validator/.deps
 find tools/momot-validator/.deps -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name 'guava-18.0.jar' -exec cp {} tools/momot-validator/lib/ \\;
 rm -rf tools/momot-validator/.deps
 for bundle in ${OCL_BUNDLES.join(' ')}; do
@@ -313,14 +313,14 @@ curl -fsSL "$maven_base/org/ow2/asm/asm-util/7.3.1/asm-util-7.3.1.jar" -o tools/
 curl -fsSL "$maven_base/org/ow2/asm/asm-analysis/7.3.1/asm-analysis-7.3.1.jar" -o tools/momot-validator/lib/asm-analysis-7.3.1.jar
 for jar_file in tools/momot-validator/lib/*.jar; do
   work_dir="$(mktemp -d)"
-  (cd "$work_dir" && jar xf "$jar_file")
+  (cd "$work_dir" && jar xf "/src/$jar_file")
   rm -f "$work_dir"/META-INF/*.SF "$work_dir"/META-INF/*.RSA "$work_dir"/META-INF/*.DSA
   if [ -f "$work_dir/META-INF/MANIFEST.MF" ]; then
-    (cd "$work_dir" && jar cfm "$jar_file.new" META-INF/MANIFEST.MF .)
+    (cd "$work_dir" && jar cfm "/src/$jar_file.new" META-INF/MANIFEST.MF .)
   else
-    (cd "$work_dir" && jar cf "$jar_file.new" .)
+    (cd "$work_dir" && jar cf "/src/$jar_file.new" .)
   fi
-  mv "$jar_file.new" "$jar_file"
+  mv "/src/$jar_file.new" "/src/$jar_file"
   rm -rf "$work_dir"
 done
 `;
@@ -401,10 +401,21 @@ function normalizeValidatorArgs(args) {
   });
 }
 
+function dockerizePath(hostPath) {
+  if (hostPath.startsWith('--') || hostPath.startsWith('-')) {
+    return hostPath;
+  }
+  const absPath = resolve(hostPath);
+  if (absPath.startsWith(REPO_ROOT)) {
+    return '/src/' + relative(REPO_ROOT, absPath).replace(/\\/g, '/');
+  }
+  return absPath.replace(/\\/g, '/');
+}
+
 function dockerizeValidatorArgs(args) {
   return normalizeValidatorArgs(args).map((arg) => {
     if (arg.startsWith('--')) return arg;
-    return arg.replace(/\\/g, '/');
+    return dockerizePath(arg);
   });
 }
 
@@ -436,8 +447,6 @@ async function runDocker(args) {
 
   const mount = toDockerMountPath(REPO_ROOT);
   const dockerArgs = dockerizeValidatorArgs(args);
-  const quotedArgs = dockerArgs.map((arg) => `'${arg.replace(/'/g, `'\\''`)}'`).join(' ');
-  const command = `java -cp "/src/tools/momot-validator/lib/*" at.ac.tuwien.big.momot.runner.MomotValidator ${quotedArgs}`; // glob works in Linux container
 
   return new Promise((resolvePromise, reject) => {
     const proc = spawn('docker', [
@@ -445,8 +454,8 @@ async function runDocker(args) {
       '-v', `${mount}:/src`,
       '-w', '/src',
       RUNTIME_IMAGE,
-      'bash', '-lc', command
-    ], { stdio: 'inherit', shell: process.platform === 'win32' });
+      'java', '-cp', '/src/tools/momot-validator/lib/*', 'at.ac.tuwien.big.momot.runner.MomotValidator', ...dockerArgs
+    ], { stdio: 'inherit' });
     proc.on('close', (code) => resolvePromise(code ?? 1));
     proc.on('error', reject);
   });

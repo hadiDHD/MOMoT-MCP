@@ -80,6 +80,9 @@ function hasLocalJavac() {
 }
 
 function dockerizePath(hostPath) {
+  if (!existsSync(hostPath)) {
+    return hostPath; // Keep literal strings or rule names untouched
+  }
   const absPath = resolve(hostPath);
   if (absPath.startsWith(REPO_ROOT)) {
     return '/workspace/' + relative(REPO_ROOT, absPath).replace(/\\/g, '/');
@@ -143,7 +146,7 @@ async function run(args, { forceDocker = false } = {}) {
     if (!isDockerAvailable()) {
       throw new Error('Docker is not available. Install JDK or start Docker Desktop.');
     }
-    const dockerArgs = args.map(arg => arg.startsWith('--') ? arg : dockerizePath(arg));
+    const dockerArgs = args.map(arg => (arg.startsWith('--') || arg.startsWith('-')) ? arg : dockerizePath(arg));
     const commandArgs = [
       'run', '--rm',
       '-v', `${REPO_ROOT}:/workspace`,

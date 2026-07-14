@@ -27,6 +27,8 @@ RUN npm install
 # Stage 2: Clean runtime stage with Node and JDK 21
 FROM node:20-bookworm-slim
 
+ENV MOMOT_WORKBENCH_ENV=container
+
 # Install Temurin JDK 21 from Adoptium (required for compiling/executing Java 21)
 RUN apt-get update && apt-get install -y wget gnupg && \
     mkdir -p /etc/apt/keyrings && \

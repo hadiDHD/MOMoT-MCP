@@ -361,6 +361,9 @@ async function setupDocker() {
 }
 
 function getSetupStrategy({ forceDocker = false, forceLocal = false } = {}) {
+  if (process.env.MOMOT_WORKBENCH_ENV === 'container') {
+    return 'local';
+  }
   if (forceDocker) return 'docker';
   if (forceLocal) return getLocalJavaMajor() >= 21 ? 'local' : 'local-compat';
   const javaMajor = getLocalJavaMajor();
@@ -370,6 +373,9 @@ function getSetupStrategy({ forceDocker = false, forceLocal = false } = {}) {
 }
 
 function getRunStrategy({ forceDocker = false, forceLocal = false } = {}) {
+  if (process.env.MOMOT_WORKBENCH_ENV === 'container') {
+    return 'local';
+  }
   if (forceDocker) return 'docker';
   if (forceLocal) return 'local';
   const javaMajor = getLocalJavaMajor();

@@ -104,7 +104,8 @@ async function setup({ forceDocker = false } = {}) {
     }
   }
 
-  const useDocker = forceDocker || !hasLocalJavac();
+  const isContainer = process.env.MOMOT_WORKBENCH_ENV === 'container';
+  const useDocker = !isContainer && (forceDocker || !hasLocalJavac());
 
   if (useDocker) {
     if (!isDockerAvailable()) {
@@ -139,7 +140,8 @@ async function setup({ forceDocker = false } = {}) {
 }
 
 async function run(args, { forceDocker = false } = {}) {
-  const useDocker = forceDocker || !hasLocalJava();
+  const isContainer = process.env.MOMOT_WORKBENCH_ENV === 'container';
+  const useDocker = !isContainer && (forceDocker || !hasLocalJava());
 
   let proc;
   if (useDocker) {

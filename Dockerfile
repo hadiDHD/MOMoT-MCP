@@ -50,6 +50,7 @@ RUN set -eux; \
 	done
 
 FROM eclipse-temurin:21-jdk
+ENV MOMOT_WORKBENCH_ENV=container
 WORKDIR /work
 EXPOSE 8080
 VOLUME ["/work", "/out"]

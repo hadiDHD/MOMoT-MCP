@@ -12,19 +12,43 @@ Follow these steps to fully configure the workspace, compile components, and run
 
 No host dependencies (Java, Maven, etc.) are needed.
 
-### 1. Build and Run the REST Headless Runner
+### ⚡ Instant Setup using Pre-Built Registry Images (Zero Build Time)
+We publish pre-built, production-ready Docker images of both the REST runner and the MCP server directly to the GitHub Container Registry (`ghcr.io`). Pull and run them instantly:
+
+#### 1. Run the REST Headless Runner
 ```bash
-docker build -t momot-headless -f Dockerfile .
-docker run --rm -d -p 8080:8080 --name momot-runner momot-headless
+docker run --rm -d -p 8080:8080 --name momot-runner ghcr.io/jku-win-se/momot-headless:latest
 ```
 
-### 2. Verify Runner Health
+#### 2. Verify Runner Health
 ```bash
 curl http://localhost:8080/health
 ```
 *(Expected output: `{"status":"UP","health":{"ok":true}}`)*
 
-### 3. Build and Run the MCP Server (Dockerized)
+#### 3. Run the MCP Server (Dockerized)
+The containerized MCP server includes all validators fully pre-compiled and signature-stripped:
+```bash
+docker run --rm -i ghcr.io/jku-win-se/momot-mcp:latest
+```
+
+---
+
+### 🛠️ Alternative: Build Images Locally (Takes ~3–5 Minutes)
+
+#### 1. Build and Run the REST Headless Runner
+```bash
+docker build -t momot-headless -f Dockerfile .
+docker run --rm -d -p 8080:8080 --name momot-runner momot-headless
+```
+
+#### 2. Verify Runner Health
+```bash
+curl http://localhost:8080/health
+```
+*(Expected output: `{"status":"UP","health":{"ok":true}}`)*
+
+#### 3. Build and Run the MCP Server (Dockerized)
 The containerized MCP server includes all validators fully pre-compiled and signature-stripped:
 ```bash
 docker build -t momot-mcp -f mcp/Dockerfile .

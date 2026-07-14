@@ -37,20 +37,36 @@ This workbench is designed to run with **zero local dependencies**. You do **not
 
 This repository utilizes ES Modules (ESM) which run directly in Node.js, so **no `npm build` or build steps are required** for the JS/TS code!
 
-To run the entire platform with zero local host dependencies (no local Java, Maven, or libraries needed), you can use the pre-configured Docker images:
+To run the entire platform with zero local host dependencies (no local Java, Maven, or libraries needed), we recommend using our pre-built, production-ready images published directly to the **GitHub Container Registry (`ghcr.io`)** for instant setup:
 
-#### A. Run the Headless REST Runner (Docker)
+#### A. Run the Headless REST Runner (Docker Registry)
+```bash
+docker run --rm -p 8080:8080 ghcr.io/jku-win-se/momot-headless:latest
+```
+* **Health Check:** `http://localhost:8080/health` (Returns `{"status": "UP", "health": {"ok": true}}` when ready)
+* **Interactive API Docs (Swagger UI):** `http://localhost:8080/docs`
+
+#### B. Run the MCP Server (Docker Registry, includes pre-built validators)
+To run the pre-built, fully self-contained MCP server that contains all 4 validators pre-compiled:
+```bash
+docker run --rm -i ghcr.io/jku-win-se/momot-mcp:latest
+```
+
+---
+
+### 🛠️ Alternative: Build Images Locally (Takes ~3–5 Minutes)
+
+If you prefer to build the images from source locally:
+
+#### A. Build and Run the REST Headless Runner
 ```bash
 git clone https://github.com/jku-win-se/MOMoT-MCP.git
 cd MOMoT-MCP
 docker build -t momot-headless -f Dockerfile .
 docker run --rm -p 8080:8080 momot-headless
 ```
-* **Health Check:** `http://localhost:8080/health` (Returns `{"status": "UP", "health": {"ok": true}}` when ready)
-* **Interactive API Docs (Swagger UI):** `http://localhost:8080/docs`
 
-#### B. Run the MCP Server (Dockerized, includes pre-built validators)
-To run the pre-built, fully self-contained MCP server that contains all 4 validators pre-compiled:
+#### B. Build and Run the MCP Server
 ```bash
 docker build -t momot-mcp -f mcp/Dockerfile .
 docker run --rm -i momot-mcp

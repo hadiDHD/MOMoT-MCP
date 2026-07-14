@@ -40,7 +40,7 @@ Strictly enforce the 8 HITL gates:
 - **G4**: Approve `.momot` Search Script.
 - **G5**: Approve Java Helper class (if applicable).
 - **G6**: Pre-Execution Summary. Present full file inventory, ZIP contents, and estimated runtime.
-- **G7**: Post-Execution Pareto Front Analysis. Report objectives and allow re-runs.
+- **G7**: Post-Execution Pareto Front Analysis. Report objectives, decode designs, allow re-runs, and **MUST** generate a visual text-based 2D ASCII scatter plot representing the Pareto trade-off front (e.g., matching Solution Length on X-axis vs. Fitness/Modularity on Y-axis).
 
 ### 5b. Explicit HITL Gate Presentation Protocol
 For every check gate (G0 to G7), you MUST present the generated or validated content in a highly explicit, structured manner. Follow these rules for every gate response:
@@ -55,6 +55,7 @@ For every check gate (G0 to G7), you MUST present the generated or validated con
    - Or **provide constructive feedback** with any requested changes or corrections.
    ```
 4. **Halt Execution:** Do NOT proceed to the next step, run any further generation/execution tools, or make assumptions until the user has responded to the gate.
+5. **Pareto Front Monospace Plotting:** For Gate G7, you MUST generate a text-based ASCII 2D scatter plot depicting the Pareto front. Plot your objective trade-offs clearly (e.g. Y-axis for Modularity/CRA, X-axis for Solution Length), label the coordinates, plot the non-dominated points with `*` or numeric markers, and annotate the "knee points" (ideal compromises) clearly in the text.
 
 ## 6. Final Assembly and Execution
 1. Once all artifacts are validated and approved, assemble a pre-built job ZIP.

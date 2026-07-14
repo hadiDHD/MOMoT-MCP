@@ -2,6 +2,10 @@
 
 Follow these steps to fully configure the workspace, compile components, and run verification checks.
 
+> ⚠️ **IMPORTANT AGENT TIMEOUT NOTE:** 
+> Downloading, packaging, and compiling the full Maven/Eclipse plugin lifecycle and stripping OSGi signatures inside Docker takes a significant amount of time (typically 3–5 minutes on first run). 
+> **You MUST execute all `docker build` commands with an extended tool timeout of at least 10 minutes (600,000 ms) to prevent terminal execution timeout failures.**
+
 ---
 
 ## Option A: Zero-Dependency Docker Setup (Recommended)

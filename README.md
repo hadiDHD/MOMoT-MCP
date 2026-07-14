@@ -37,11 +37,11 @@ This workbench is designed to run with **zero local dependencies**. You do **not
 
 This repository utilizes ES Modules (ESM) which run directly in Node.js, so **no `npm build` or build steps are required** for the JS/TS code!
 
-To run the entire platform with zero local host dependencies (no local Java, Maven, or libraries needed), we recommend using our pre-built, production-ready images published directly to the **GitHub Container Registry (`ghcr.io`)** for instant setup:
+To run the entire platform with zero local host dependencies (no local Java, Maven, or libraries needed), we recommend using our pre-built, production-ready images published directly to the **GitHub Container Registry (`ghcr.io`)** (view packages page at **[hadiDHD's Public MOMoT-MCP Packages](https://github.com/hadiDHD?tab=packages&repo_name=MOMoT-MCP)**) for instant setup:
 
 #### A. Run the Headless REST Runner (Docker Registry)
 ```bash
-docker run --rm -p 8080:8080 ghcr.io/jku-win-se/momot-headless:latest
+docker run --rm -p 8080:8080 ghcr.io/hadidhd/momot-headless:latest
 ```
 * **Health Check:** `http://localhost:8080/health` (Returns `{"status": "UP", "health": {"ok": true}}` when ready)
 * **Interactive API Docs (Swagger UI):** `http://localhost:8080/docs`
@@ -49,7 +49,7 @@ docker run --rm -p 8080:8080 ghcr.io/jku-win-se/momot-headless:latest
 #### B. Run the MCP Server (Docker Registry, includes pre-built validators)
 To run the pre-built, fully self-contained MCP server that contains all 4 validators pre-compiled:
 ```bash
-docker run --rm -i ghcr.io/jku-win-se/momot-mcp:latest
+docker run --rm -i ghcr.io/hadidhd/momot-mcp:latest
 ```
 
 ---

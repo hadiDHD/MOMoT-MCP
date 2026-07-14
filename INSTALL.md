@@ -13,11 +13,13 @@ Follow these steps to fully configure the workspace, compile components, and run
 No host dependencies (Java, Maven, etc.) are needed.
 
 ### ⚡ Instant Setup using Pre-Built Registry Images (Zero Build Time)
-We publish pre-built, production-ready Docker images of both the REST runner and the MCP server directly to the GitHub Container Registry (`ghcr.io`). Pull and run them instantly:
+We publish pre-built, production-ready Docker images of both the REST runner and the MCP server directly to the GitHub Container Registry (`ghcr.io`). You can view the packages here: **[hadiDHD's Public MOMoT-MCP Packages](https://github.com/hadiDHD?tab=packages&repo_name=MOMoT-MCP)**.
+
+Pull and run them instantly:
 
 #### 1. Run the REST Headless Runner
 ```bash
-docker run --rm -d -p 8080:8080 --name momot-runner ghcr.io/jku-win-se/momot-headless:latest
+docker run --rm -d -p 8080:8080 --name momot-runner ghcr.io/hadidhd/momot-headless:latest
 ```
 
 #### 2. Verify Runner Health
@@ -29,7 +31,7 @@ curl http://localhost:8080/health
 #### 3. Run the MCP Server (Dockerized)
 The containerized MCP server includes all validators fully pre-compiled and signature-stripped:
 ```bash
-docker run --rm -i ghcr.io/jku-win-se/momot-mcp:latest
+docker run --rm -i ghcr.io/hadidhd/momot-mcp:latest
 ```
 
 ---

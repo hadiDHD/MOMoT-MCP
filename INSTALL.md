@@ -74,20 +74,12 @@ cd mcp
 npm install
 ```
 
-### 3. Pre-Compile and Setup All Local Validators
-```bash
-node tools/henshin-validator/validate.mjs --setup
-node tools/momot-validator/validate.mjs --setup
-node tools/ecore-validator/validate.mjs --setup
-node tools/xmi-validator/validate.mjs --setup
-```
-
-### 4. Run MCP Unit Tests
+### 3. Run MCP Unit Tests
 ```bash
 npm test
 ```
 
-### 5. Start the Local MCP Server
+### 4. Start the Local MCP Server
 ```bash
 node server.js
 ```

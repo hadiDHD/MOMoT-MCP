@@ -33,27 +33,52 @@ This workbench is designed to run with **zero local dependencies**. You do **not
 
 ## Quick Start
 
-### 1. Run the Headless REST Runner (Docker)
+### 1. Cold-Start Setup (No Host Dependencies — Recommended)
 
+This repository utilizes ES Modules (ESM) which run directly in Node.js, so **no `npm build` or build steps are required** for the JS/TS code!
+
+To run the entire platform with zero local host dependencies (no local Java, Maven, or libraries needed), you can use the pre-configured Docker images:
+
+#### A. Run the Headless REST Runner (Docker)
 ```bash
 git clone https://github.com/jku-win-se/MOMoT-MCP.git
 cd MOMoT-MCP
 docker build -t momot-headless -f Dockerfile.headless .
 docker run --rm -p 8080:8080 momot-headless
 ```
+* **Health Check:** `http://localhost:8080/health` (Returns `{"status": "UP", "health": {"ok": true}}` when ready)
+* **Interactive API Docs (Swagger UI):** `http://localhost:8080/docs`
 
-- **Health Check:** `http://localhost:8080/health` (Returns `{"status": "UP", "health": {"ok": true}}` when ready)
-- **Interactive API Docs (Swagger UI):** `http://localhost:8080/docs`
+#### B. Run the MCP Server (Dockerized, includes pre-built validators)
+To run the pre-built, fully self-contained MCP server that contains all 4 validators pre-compiled:
+```bash
+docker build -t momot-mcp -f mcp/Dockerfile .
+docker run --rm -i momot-mcp
+```
 
-### 2. Start the MCP Server
+---
 
+### 2. Local Host Setup (Optional)
+
+If you prefer to run the MCP server and validators directly on your host machine (requires JDK 17+ or JDK 21+):
+
+#### A. Setup and Run the MCP Server
 ```bash
 cd mcp
 npm install
 node server.js
 ```
 
-The MCP server connects via stdio JSON-RPC transport and translates LLM agent tool calls into automated local Docker validations and containerized optimization runs.
+#### B. Pre-Build Local Host Validators (Optional)
+On first run, the Node-based CLI validators will automatically compile their corresponding Java components if they are not already compiled. To pre-build all of them at once on your host machine:
+```bash
+node tools/henshin-validator/validate.mjs --setup
+node tools/momot-validator/validate.mjs --setup
+node tools/ecore-validator/validate.mjs --setup
+node tools/xmi-validator/validate.mjs --setup
+```
+
+The MCP server connects via stdio JSON-RPC transport and translates LLM agent tool calls into automated local validations and containerized optimization runs.
 
 ---
 

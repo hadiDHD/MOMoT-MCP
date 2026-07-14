@@ -18,6 +18,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.xmi.XMLResource;
+
 public class HenshinValidator {
     public static void main(String[] args) {
         if (args.length == 0) {
@@ -84,6 +87,9 @@ public class HenshinValidator {
     private static void validate(String henshinPath, String metamodelPath, String modelPath, String ruleName, java.util.Map<String, Object> parameters, boolean structure, boolean semantic, boolean apply) throws Exception {
         HenshinResourceSet resSet = new HenshinResourceSet();
 
+        // 2. Configure the ResourceSet load options to ignore inline schema locations
+        resSet.getLoadOptions().put(XMLResource.OPTION_SCHEMA_LOCATION, Boolean.FALSE);
+
         if (structure) {
             // Structure mode: load the .henshin XMI without registering any metamodel.
             // Verifies that the file is a well-formed Henshin module and lists all units.
@@ -97,6 +103,23 @@ public class HenshinValidator {
         }
 
         if (metamodelPath != null) {
+            // 1. Map the loaded EPackage globally across all potential namespace URIs and relative/absolute physical file paths.
+            ResourceSet metaResSet = new ResourceSetImpl();
+            metaResSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("ecore", new XMIResourceFactoryImpl());
+            Resource metaRes = metaResSet.getResource(URI.createFileURI(new File(metamodelPath).getAbsolutePath()), true);
+            for (org.eclipse.emf.ecore.EObject obj : metaRes.getContents()) {
+                if (obj instanceof EPackage) {
+                    EPackage ePkg = (EPackage) obj;
+                    EPackage.Registry.INSTANCE.put(ePkg.getNsURI(), ePkg);
+                    resSet.getPackageRegistry().put(ePkg.getNsURI(), ePkg);
+                    
+                    String absPath = new File(metamodelPath).getAbsolutePath().replace("\\", "/");
+                    resSet.getPackageRegistry().put("file:/" + absPath, ePkg);
+                    resSet.getPackageRegistry().put("file://" + absPath, ePkg);
+                    resSet.getPackageRegistry().put(metamodelPath, ePkg);
+                    resSet.getPackageRegistry().put(new File(metamodelPath).getName(), ePkg);
+                }
+            }
             resSet.registerDynamicEPackages(metamodelPath);
         }
 
@@ -104,6 +127,9 @@ public class HenshinValidator {
         if (module == null) {
             throw new RuntimeException("Could not load Henshin module: " + henshinPath);
         }
+
+        // 3. Force EMF to resolve all lazy proxies (supertypes and opposites)
+        EcoreUtil.resolveAll(resSet);
 
         System.out.println("{ \"valid\": true, \"mode\": \"semantic\", \"rules\": " + getRuleNames(module) + " }");
 

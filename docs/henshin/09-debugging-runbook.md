@@ -33,3 +33,10 @@ Triage guide for Henshin failures.
 -   **Cause**: An edge is defined in the rule XML, but the source node lacks `outgoing="edgeId"` or the target node lacks `incoming="edgeId"` (or vice-versa).
 -   **Fix**: Verify all rule edges have corresponding matching references in the nodes' `incoming`/`outgoing` attribute lists.
 
+## 8. "The feature ... is not a valid feature" (Package Identity Mismatch)
+-   **Cause**: When dry-run applying a rule, EMF loads the metamodel once to parse Henshin rules (Package Instance #1) and a second time when parsing the XMI model via its inline `xsi:schemaLocation="... cra.ecore"` (Package Instance #2). When Henshin queries a bidirectional opposite feature on a model candidate, EMF checks if the queried feature object is the exact same in-memory object as the registered structural feature, throwing an `IllegalArgumentException` if they come from different EPackage instances.
+-   **Fix**: 
+    1. Configure the validator's ResourceSet to ignore XML schema locations via `XMLResource.OPTION_SCHEMA_LOCATION = Boolean.FALSE`.
+    2. Register the loaded EPackage globally across all potential namespace URIs and absolute/relative physical file paths in the package registry, allowing EMF to reuse the in-memory package instance instead of parsing it a second time.
+    3. Invoke `EcoreUtil.resolveAll(resSet)` on the ResourceSet prior to rule application to force resolving all lazy proxies.
+

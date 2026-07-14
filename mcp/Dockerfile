@@ -27,8 +27,13 @@ RUN npm install
 # Stage 2: Clean runtime stage with Node and JDK 21
 FROM node:20-bookworm-slim
 
-# Install OpenJDK 21 (required for executing java and compiling with javac)
-RUN apt-get update && apt-get install -y openjdk-21-jdk && rm -rf /var/lib/apt/lists/*
+# Install Temurin JDK 21 from Adoptium (required for compiling/executing Java 21)
+RUN apt-get update && apt-get install -y wget gnupg && \
+    mkdir -p /etc/apt/keyrings && \
+    wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor > /etc/apt/keyrings/adoptium.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb bookworm main" > /etc/apt/sources.list.d/adoptium.list && \
+    apt-get update && apt-get install -y temurin-21-jdk && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

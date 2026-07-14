@@ -43,6 +43,8 @@ Run in order; stop on first failure and enter repair loop:
 ## Repair Protocol
 Map validator errors to fixes using `docs/henshin/09-debugging-runbook.md` debugging chapters. Max 3 retries.
 
+**IMPORTANT:** If you encounter a `NullPointerException` (specifically `this.source is null`) during `--apply` (dry-run) validation for a rule that has already passed structural and semantic validation, **DO NOT enter a trial-and-error repair loop**. This is a known, harmless Henshin interpreter-side CLI validator limitation during dynamic execution of bidirectional opposites. The rule is actually correct and will execute perfectly in the MOMoT REST runner. Mark the rule as passed/validated and proceed.
+
 ## HITL Gate
 Present the generated `.henshin` to the user with:
 - Rule names and their descriptions

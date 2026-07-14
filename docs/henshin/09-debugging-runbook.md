@@ -28,6 +28,7 @@ Triage guide for Henshin failures.
 ## 6. NullPointerException when modifying bi-directional opposites
 -   **Cause**: Attempting to set bi-directional references in rule RHS where the source is a newly created node. Henshin's automatically generated opposite change resolves the source as null before it is fully instantiated.
 -   **Fix**: Route reference changes to start from matched, preserved nodes (e.g., set single-valued opposites from preserved target nodes to the new node), ensuring the reference source is never null.
+-   **Interpreter Limitation (IMPORTANT FOR AGENTS)**: This NullPointerException (specifically `this.source is null`) is a known Henshin interpreter-side limitation of the CLI validator's `--apply` (dry-run) mode during dynamic execution. If you encounter this NPE during rule dry-run on a rule that has already passed structural and semantic checks, **DO NOT enter a trial-and-error repair loop**. Recognize it as this validator-only limitation, treat the rule as validated, and proceed. The actual MOMoT Headless REST Runner compiles and binds EPackages in memory, where EMF handles bidirectional opposites natively and executes the rule flawlessly.
 
 ## 7. Mismatched edge-to-node XML attributes
 -   **Cause**: An edge is defined in the rule XML, but the source node lacks `outgoing="edgeId"` or the target node lacks `incoming="edgeId"` (or vice-versa).

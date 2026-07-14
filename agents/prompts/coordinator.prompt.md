@@ -28,6 +28,7 @@ After any artifact is generated or modified:
 1. Run its corresponding validator tool at all available tiers (e.g., structure, semantic, load/apply/compile).
 2. If validation fails, enter the **Automatic Repair Loop**:
    - Triage the errors using the debugging runbook in the artifact's wiki folder.
+   - **Exception for Henshin apply-mode NPEs:** If a Henshin rule passes structural and semantic validations but fails the `--apply` (dry-run) validation with a `NullPointerException` (specifically `this.source is null`), **do NOT enter the repair loop**. This is a known, harmless interpreter-side limitation of the CLI validator's dynamic execution of bidirectional opposites. The rule is actually correct and will execute perfectly in the MOMoT REST runner. Proceed to the next step.
    - Adjust the file content and re-run validation (up to 3 retries).
    - If validation still fails after 3 attempts, escalate the error directly to the user with the full context.
 

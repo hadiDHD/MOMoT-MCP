@@ -21,7 +21,7 @@ Any class or unit listed in `ignoreUnits` must match the exact case-sensitive mo
 Any rule listed in `ignoreUnits` must exist within the declared Henshin module.
 
 ### 6. Fully-Qualified Parameter Path
-Ensure that all keys in `parameterValues` use the double-colon syntax (`"ModuleName::RuleName::paramName"`).
+Ensure that all keys in `parameterValues` use the dynamic four-segment double-colon syntax: `"FileName::ModuleName::RuleName::paramName"` (e.g., `"cra::CRA::createClass::className"`). Mismatching this key will prevent rule value injection and cause runtime exceptions.
 
 ### 7. Deprecated RandomStringValue Check
 Verify that no `RandomStringValue` references remain. Replace all of them with `new RandomListValue(#["value1", "value2"])`.
@@ -85,6 +85,10 @@ Ensure reserved keywords (e.g. `search` and `fitness`) when appearing as segment
 
 ### 27. Output File Specification (Code Generator Bug Bypass)
 When configuring results command blocks (like `solutions`), avoid specifying `outputDirectory` without `outputFile` to prevent a NullPointerException in the MOMoT code generator.
+
+### 28. OCL Division-By-Zero Protective Guards (MOEA TimSort Contract)
+When composing OCL objective expressions that perform normalizations or calculations based on collections/classes, **always** include protective `if` guards to prevent division by zero (which yields `NaN` or `Infinity`, violating Java's TimSort sorting contract and throwing an `IllegalArgumentException: Comparison method violates its general contract!`).
+- **Example:** Always guard size queries: `if c.encapsulates->size() = 0 then 0.0 else ...` before performing division!
 
 ## Running Local Validation
 

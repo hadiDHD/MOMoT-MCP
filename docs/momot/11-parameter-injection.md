@@ -25,7 +25,12 @@ Selects a double floating-point value uniformly at random from a closed interval
 
 ## The `parameterValues` Block
 
-The `parameterValues` block maps fully-qualified parameter paths (formatted as `"ModuleName::RuleName::paramName"`) to one of the injection classes.
+The `parameterValues` block maps fully-qualified parameter paths (formatted as `"FileName::ModuleName::RuleName::paramName"`) to one of the injection classes.
+
+### ⚠️ IMPORTANT: Fully-Qualified Parameter Path Structure
+MOMoT resolves rule parameters using the format `"FileName::ModuleName::RuleName::paramName"` (where `FileName` is the name of the `.henshin` file without its extension, and `ModuleName` is the name of the Henshin module *inside* that file).
+- **Example:** If your file is `cra.henshin`, the module name inside is `CRA`, the rule is `createClass`, and the parameter is `className`, the fully-qualified parameter path is `"cra::CRA::createClass::className"`.
+- Mismatching this FQN key will cause MOMoT to throw an `IllegalStateException` during execution stating that the parameter value is not set!
 
 ### Canonical Example
 
@@ -33,8 +38,8 @@ The `parameterValues` block maps fully-qualified parameter paths (formatted as `
 transformations = {
    modules = [ "model/scheduling.henshin" ]
    parameterValues = {
-      "scheduling::reassignTask::machineId" : new RandomListValue(#["m0", "m1", "m2"])
-      "scheduling::reassignTask::delayValue" : new RandomIntegerValue(1, 10)
+      "scheduling::scheduling::reassignTask::machineId" : new RandomListValue(#["m0", "m1", "m2"])
+      "scheduling::scheduling::reassignTask::delayValue" : new RandomIntegerValue(1, 10)
    }
 }
 ```

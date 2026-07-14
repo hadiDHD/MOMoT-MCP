@@ -57,3 +57,11 @@ This chapter is the authoritative triage and repair runbook for XMI model instan
 **Error:** `Root element namespace doesn't match`  
 **Root cause:** The namespace prefix declared on the root element does not match the `nsPrefix` defined in the Ecore metamodel.  
 **Fix:** Change the root XML tag prefix to match the `nsPrefix` exactly (e.g., `<scheduling:Schedule>` instead of `<sched:Schedule>`).
+
+---
+
+### 9. Duplicate EPackage Registration Collision (xsi:schemaLocation)
+**Error:** Unresolved proxies or NullPointerExceptions (`this.source is null`) during rule execution.  
+**Root cause:** Using `xsi:schemaLocation` in model files when the same dynamic EPackage is registered globally or explicitly in the `ResourceSet`. Duplicate loading under different URIs results in disjoint EPackage instances.  
+**Fix:** Remove `xsi:schemaLocation` from the XMI file if the package is loaded globally or explicitly.
+

@@ -24,3 +24,12 @@ Triage guide for Henshin failures.
 ## 5. "Inconsistent state" after rule application
 -   **Cause**: Rule violates metamodel constraints (e.g., duplicate unique IDs, broken multiplicity).
 -   **Fix**: Inspect the model after applying the rule using the CLI validator's `--apply` mode.
+
+## 6. NullPointerException when modifying bi-directional opposites
+-   **Cause**: Attempting to set bi-directional references in rule RHS where the source is a newly created node. Henshin's automatically generated opposite change resolves the source as null before it is fully instantiated.
+-   **Fix**: Route reference changes to start from matched, preserved nodes (e.g., set single-valued opposites from preserved target nodes to the new node), ensuring the reference source is never null.
+
+## 7. Mismatched edge-to-node XML attributes
+-   **Cause**: An edge is defined in the rule XML, but the source node lacks `outgoing="edgeId"` or the target node lacks `incoming="edgeId"` (or vice-versa).
+-   **Fix**: Verify all rule edges have corresponding matching references in the nodes' `incoming`/`outgoing` attribute lists.
+

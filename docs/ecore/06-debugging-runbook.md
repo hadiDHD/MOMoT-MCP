@@ -73,3 +73,11 @@ This chapter is the authoritative triage and repair runbook for Ecore metamodel 
 **Error:** `More than one root element`  
 **Root cause:** There are multiple root elements, or tags are unclosed, causing the parser to treat sections as disjoint trees.  
 **Fix:** Wrap the entire document in a single `<ecore:EPackage>` element and verify all tags close correctly.
+
+---
+
+### 11. Classloader Conflict / Reserved Java Keywords
+**Error:** `java.lang.NullPointerException: Cannot invoke ... "this.source" is null` during Henshin rule application.  
+**Root cause:** An EClass is named with a reserved Java keyword (such as `Class`, which conflicts with `java.lang.Class` in reflection or dynamic classloader lookups).  
+**Fix:** Rename the EClass to a non-conflicting name (e.g., use `Clazz` or `ClassNode` instead of `Class`).
+

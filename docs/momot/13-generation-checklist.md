@@ -1,8 +1,9 @@
-# MOMoT Wiki — Chapter 13: The 25-Point Pre-Flight Checklist
+# MOMoT Wiki — Chapter 13: The 27-Point Pre-Flight Checklist
 
-This chapter outlines the mandatory 25-point pre-flight checklist that must be executed by any agent before submitting a `.momot` script to the validation and compilation tools. Reviewing these structural, semantic, and syntax rules manually or programmatically dramatically reduces the depth of repair loops and ensures high-quality script generation.
+This chapter outlines the mandatory 27-point pre-flight checklist that must be executed by any agent before submitting a `.momot` script to the validation and compilation tools. Reviewing these structural, semantic, and syntax rules manually or programmatically dramatically reduces the depth of repair loops and ensures high-quality script generation.
 
-## The 25-Point Checklist
+## The 25-Point Checklist (with additions)
+
 
 ### 1. Package FQN Alignment
 Verify that the `package` declaration matches the Java package path of the script file location (e.g., `package at.ac.tuwien.big.momot` if in `src/at/ac/tuwien/big/momot/`).
@@ -78,6 +79,12 @@ Run compile validation to verify the generated Java code compiles successfully.
 
 ### 25. No Remaining TODOs
 Verify that no `TODO` comments or temporary markers are left in the file before committing.
+
+### 26. Reserved Word Package Import Escaping
+Ensure reserved keywords (e.g. `search` and `fitness`) when appearing as segments of an import FQN are escaped with `^` (e.g., `import at.ac.tuwien.big.momot.^search.^fitness...`) to prevent AST resolution errors.
+
+### 27. Output File Specification (Code Generator Bug Bypass)
+When configuring results command blocks (like `solutions`), avoid specifying `outputDirectory` without `outputFile` to prevent a NullPointerException in the MOMoT code generator.
 
 ## Running Local Validation
 

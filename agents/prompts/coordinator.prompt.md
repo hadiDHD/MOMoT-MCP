@@ -42,6 +42,20 @@ Strictly enforce the 8 HITL gates:
 - **G6**: Pre-Execution Summary. Present full file inventory, ZIP contents, and estimated runtime.
 - **G7**: Post-Execution Pareto Front Analysis. Report objectives and allow re-runs.
 
+### 5b. Explicit HITL Gate Presentation Protocol
+For every check gate (G0 to G7), you MUST present the generated or validated content in a highly explicit, structured manner. Follow these rules for every gate response:
+
+1. **Display Full Code/Content:** Directly print the complete code, XML, or configuration of the artifact in a markdown code block (or a clear, high-fidelity table/summary if the file exceeds 100 lines). Never hide, truncate, or omit the generated code.
+2. **Show Validation Tier Status:** Explicitly state each validation check performed (e.g. structural validation, semantic validation, compilation checks, rule applications) and report if they passed or failed, including any warning or info messages from the validator tools.
+3. **Explicit Pause & Action Block:** Always terminate your response with a highly visible, bolded, and standardized **Action Required** block asking the user to approve the gate or provide feedback. Use this exact template:
+   ```markdown
+   ### 🚦 ACTION REQUIRED: HITL Gate G[X] - [Name of Gate] Approval
+   Please inspect the generated artifact above.
+   - Reply with **"APPROVED"** to accept this artifact and proceed to the next step.
+   - Or **provide constructive feedback** with any requested changes or corrections.
+   ```
+4. **Halt Execution:** Do NOT proceed to the next step, run any further generation/execution tools, or make assumptions until the user has responded to the gate.
+
 ## 6. Final Assembly and Execution
 1. Once all artifacts are validated and approved, assemble a pre-built job ZIP.
 2. Present the pre-execution checklist at HITL Gate G6.

@@ -120,6 +120,17 @@ function findOclBundle(bundleName, m2Root = join(homedir(), '.m2')) {
   return null;
 }
 
+function isSigned(jarPath) {
+  try {
+    const result = spawnSync('jar', ['tf', jarPath], { encoding: 'utf8', stdio: 'pipe' });
+    if (result.status !== 0) return false;
+    const files = result.stdout || '';
+    return /META-INF\/.*\.(SF|RSA|DSA)/i.test(files);
+  } catch {
+    return false;
+  }
+}
+
 function stripJarSignatures(jarPath) {
   const workDir = mkdtempSync(join(tmpdir(), 'momot-strip-'));
   try {
@@ -155,7 +166,10 @@ async function stripAllJarSignatures(dir = LIB_DIR) {
   console.log('Stripping JAR signatures (prevents Eclipse classpath conflicts)...');
   for (const file of readdirSync(dir)) {
     if (file.endsWith('.jar')) {
-      stripJarSignatures(join(dir, file));
+      const jarPath = join(dir, file);
+      if (isSigned(jarPath)) {
+        stripJarSignatures(jarPath);
+      }
     }
   }
 }
@@ -312,16 +326,18 @@ curl -fsSL "$maven_base/org/ow2/asm/asm-tree/7.3.1/asm-tree-7.3.1.jar" -o tools/
 curl -fsSL "$maven_base/org/ow2/asm/asm-util/7.3.1/asm-util-7.3.1.jar" -o tools/momot-validator/lib/asm-util-7.3.1.jar
 curl -fsSL "$maven_base/org/ow2/asm/asm-analysis/7.3.1/asm-analysis-7.3.1.jar" -o tools/momot-validator/lib/asm-analysis-7.3.1.jar
 for jar_file in tools/momot-validator/lib/*.jar; do
-  work_dir="$(mktemp -d)"
-  (cd "$work_dir" && jar xf "/src/$jar_file")
-  rm -f "$work_dir"/META-INF/*.SF "$work_dir"/META-INF/*.RSA "$work_dir"/META-INF/*.DSA
-  if [ -f "$work_dir/META-INF/MANIFEST.MF" ]; then
-    (cd "$work_dir" && jar cfm "/src/$jar_file.new" META-INF/MANIFEST.MF .)
-  else
-    (cd "$work_dir" && jar cf "/src/$jar_file.new" .)
+  if jar tf "/src/$jar_file" | grep -qE "META-INF/.*\.(SF|RSA|DSA)"; then
+    work_dir="$(mktemp -d)"
+    (cd "$work_dir" && jar xf "/src/$jar_file")
+    rm -f "$work_dir"/META-INF/*.SF "$work_dir"/META-INF/*.RSA "$work_dir"/META-INF/*.DSA
+    if [ -f "$work_dir/META-INF/MANIFEST.MF" ]; then
+      (cd "$work_dir" && jar cfm "/src/$jar_file.new" META-INF/MANIFEST.MF .)
+    else
+      (cd "$work_dir" && jar cf "/src/$jar_file.new" .)
+    fi
+    mv "/src/$jar_file.new" "/src/$jar_file"
+    rm -rf "$work_dir"
   fi
-  mv "/src/$jar_file.new" "/src/$jar_file"
-  rm -rf "$work_dir"
 done
 `;
 }

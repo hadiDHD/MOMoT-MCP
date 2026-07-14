@@ -35,16 +35,18 @@ RUN set -eux; \
 	curl -fsSL "$base_url/org/ow2/asm/asm-analysis/7.3.1/asm-analysis-7.3.1.jar" -o "/app/repository/plugins/asm-analysis-7.3.1.jar"
 RUN set -eux; \
 	for jar_file in /app/repository/plugins/*.jar; do \
-		work_dir="$(mktemp -d)"; \
-		(cd "$work_dir" && jar xf "$jar_file"); \
-		rm -f "$work_dir"/META-INF/*.SF "$work_dir"/META-INF/*.RSA "$work_dir"/META-INF/*.DSA; \
-		if [ -f "$work_dir/META-INF/MANIFEST.MF" ]; then \
-			(cd "$work_dir" && jar cfm "$jar_file.new" META-INF/MANIFEST.MF .); \
-		else \
-			(cd "$work_dir" && jar cf "$jar_file.new" .); \
+		if jar tf "$jar_file" | grep -qE "META-INF/.*\.(SF|RSA|DSA)"; then \
+			work_dir="$(mktemp -d)"; \
+			(cd "$work_dir" && jar xf "$jar_file"); \
+			rm -f "$work_dir"/META-INF/*.SF "$work_dir"/META-INF/*.RSA "$work_dir"/META-INF/*.DSA; \
+			if [ -f "$work_dir/META-INF/MANIFEST.MF" ]; then \
+				(cd "$work_dir" && jar cfm "$jar_file.new" META-INF/MANIFEST.MF .); \
+			else \
+				(cd "$work_dir" && jar cf "$jar_file.new" .); \
+			fi; \
+			mv "$jar_file.new" "$jar_file"; \
+			rm -rf "$work_dir"; \
 		fi; \
-		mv "$jar_file.new" "$jar_file"; \
-		rm -rf "$work_dir"; \
 	done
 
 FROM eclipse-temurin:21-jdk

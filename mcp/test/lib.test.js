@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import JSZip from 'jszip';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   buildJobZip,
   normalizeZipPath,
@@ -15,6 +18,10 @@ import {
   validateJavaHelper,
   generateJavaHelper
 } from '../lib.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const T01_DIR = path.resolve(__dirname, '../../test-suite/T01-stack-balancing');
+const hasT01 = fs.existsSync(T01_DIR);
 
 test('normalizeZipPath rejects traversal and drive letters', () => {
   assert.equal(normalizeZipPath('src/a.momot'), 'src/a.momot');
@@ -47,7 +54,7 @@ test('parseResponseZip extracts exit code, outputs, and log tail', async () => {
   assert.equal(response.logTail, 'line2\nline3');
 });
 
-test('detectArtifacts plans correctly on T01', async () => {
+test('detectArtifacts plans correctly on T01', { skip: !hasT01 ? 'test-suite T01 not found (cold-start)' : false }, async () => {
   const result = await detectArtifacts({
     workspaceDir: '../test-suite/T01-stack-balancing',
     userPrompt: 'optimize stack load balancing'
@@ -73,7 +80,7 @@ test('generateEcore and validateEcore workflow', async () => {
   assert.equal(valResult.success, true);
 });
 
-test('generateXmi and validateXmi workflow', async () => {
+test('generateXmi and validateXmi workflow', { skip: !hasT01 ? 'test-suite T01 not found (cold-start)' : false }, async () => {
   const result = await generateXmi({
     ecorePath: '../test-suite/T01-stack-balancing/model/stack.ecore',
     nlDescription: 'optimize stack load balancing',
@@ -91,7 +98,7 @@ test('generateXmi and validateXmi workflow', async () => {
   assert.equal(valResult.success, true);
 });
 
-test('generateJavaHelper produces compilable output structure', async () => {
+test('generateJavaHelper produces compilable output structure', { skip: !hasT01 ? 'test-suite T01 not found (cold-start)' : false }, async () => {
   const result = await generateJavaHelper({
     ecorePath: '../test-suite/T01-stack-balancing/model/stack.ecore',
     objectiveDescription: 'Minimize makespan of scheduling',
@@ -104,7 +111,7 @@ test('generateJavaHelper produces compilable output structure', async () => {
   assert.ok(result.javaContent.includes('public class SchedulingFitness'));
 });
 
-test('generateHenshin produces valid Henshin output', async () => {
+test('generateHenshin produces valid Henshin output', { skip: !hasT01 ? 'test-suite T01 not found (cold-start)' : false }, async () => {
   const result = await generateHenshin({
     ecorePath: '../test-suite/T01-stack-balancing/model/stack.ecore',
     outputPath: '../tools/henshin-validator/lib/test_generated.henshin',
@@ -115,7 +122,7 @@ test('generateHenshin produces valid Henshin output', async () => {
   assert.ok(result.henshinContent.includes('create_StackModel'));
 });
 
-test('generateMomot produces valid MOMoT output', async () => {
+test('generateMomot produces valid MOMoT output', { skip: !hasT01 ? 'test-suite T01 not found (cold-start)' : false }, async () => {
   const result = await generateMomot({
     ecorePath: '../test-suite/T01-stack-balancing/model/stack.ecore',
     modelPath: 'model/input/model/model_five_stacks.xmi',

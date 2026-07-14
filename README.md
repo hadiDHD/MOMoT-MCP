@@ -43,7 +43,7 @@ To run the entire platform with zero local host dependencies (no local Java, Mav
 ```bash
 git clone https://github.com/jku-win-se/MOMoT-MCP.git
 cd MOMoT-MCP
-docker build -t momot-headless -f Dockerfile.headless .
+docker build -t momot-headless -f Dockerfile .
 docker run --rm -p 8080:8080 momot-headless
 ```
 * **Health Check:** `http://localhost:8080/health` (Returns `{"status": "UP", "health": {"ok": true}}` when ready)

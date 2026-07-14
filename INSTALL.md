@@ -14,7 +14,7 @@ No host dependencies (Java, Maven, etc.) are needed.
 
 ### 1. Build and Run the REST Headless Runner
 ```bash
-docker build -t momot-headless -f Dockerfile.headless .
+docker build -t momot-headless -f Dockerfile .
 docker run --rm -d -p 8080:8080 --name momot-runner momot-headless
 ```
 
@@ -40,7 +40,7 @@ Requires local Node.js (v20+) and local Java JDK (v17+ or v21+).
 ### 1. Build and Run the REST Headless Runner
 Keep the headless runner running in Docker on port 8080:
 ```bash
-docker build -t momot-headless -f Dockerfile.headless .
+docker build -t momot-headless -f Dockerfile .
 docker run --rm -d -p 8080:8080 --name momot-runner momot-headless
 ```
 

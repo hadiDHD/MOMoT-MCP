@@ -7,6 +7,7 @@ This chapter outlines the mandatory 27-point pre-flight checklist that must be e
 
 ### 1. Package FQN Alignment
 Verify that the `package` declaration matches the Java package path of the script file location (e.g., `package at.ac.tuwien.big.momot` if in `src/at/ac/tuwien/big/momot/`).
+- **⚠️ CRITICAL:** Do NOT use any reserved MOMoT DSL keywords (such as `search`, `fitness`, `algorithms`, `objectives`, `transformations`, etc.) as any sub-segment of your package name (e.g., `package benchmark.search` is ILLEGAL as `search` is a reserved word and will crash the Xtext parser). Use safe, semantic names like `benchmark.cra` or `benchmark.solve` instead.
 
 ### 2. Model File Path
 The `model.file` property must resolve to a valid XMI instance relative to the job root.
@@ -89,6 +90,12 @@ When configuring results command blocks (like `solutions`), avoid specifying `ou
 ### 28. OCL Division-By-Zero Protective Guards (MOEA TimSort Contract)
 When composing OCL objective expressions that perform normalizations or calculations based on collections/classes, **always** include protective `if` guards to prevent division by zero (which yields `NaN` or `Infinity`, violating Java's TimSort sorting contract and throwing an `IllegalArgumentException: Comparison method violates its general contract!`).
 - **Example:** Always guard size queries: `if c.encapsulates->size() = 0 then 0.0 else ...` before performing division!
+
+### 29. Analysis Unordered Group Constraints (Xtext Grammars)
+If you include an `analysis` or `analysisOrchestration` block in your script, you **MUST** populate all mandatory fields enforced by the Xtext grammar's unordered group. Do not omit `significance = 0.01` or `maximumParetoFrontError` as the parser cannot leave the block without these being parsed, throwing a grammar predicate crash. If in doubt, align your block exactly with the fully-populated template in the Stack example.
+
+### 30. Prefer Native OCL for Objectives (Runner Classpath Safety)
+Always prioritize writing fitness objectives as **native OCL expressions inside the `.momot` script**. Avoid generating custom Java helper classes (`*Fitness.java` or `*Helper.java`) unless explicitly requested by the user, because the remote headless REST runner's dynamic compiler only compiles classes in `src-gen` generated from translating `.momot` to `.java` and does not add other custom `.java` files in the ZIP to its runtime classpath.
 
 ## Running Local Validation
 
